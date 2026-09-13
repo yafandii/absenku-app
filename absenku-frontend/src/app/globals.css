@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand Dexa Group Colors */
+  --color-dexa-red: #b81d24;
+  --color-dexa-red-hover: #991b1e;
+  --color-dexa-red-dark: #7a1217;
+  --color-dexa-red-light: #fef2f2;
+  --color-dexa-red-accent: #e5232a;
+
+  /* Corporate Clean Light Tones */
+  --color-dexa-surface: #ffffff;
+  --color-dexa-border: #e2e8f0;
+  --color-dexa-subtle: #f8fafc;
+
+  /* Status Kehadiran Presensi (Sesuai PRD FR-5.1) */
+  --color-status-ontime: #10b981;
+  --color-status-ontime-bg: #ecfdf5;
+  --color-status-late: #f59e0b;
+  --color-status-late-bg: #fffbeb;
+  --color-status-absent: #ef4444;
+  --color-status-absent-bg: #fef2f2;
+  --color-status-leave: #3b82f6;
+  --color-status-leave-bg: #eff6ff;
+
+  /* Font System */
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Custom Sleek Light Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b81d24;
+}

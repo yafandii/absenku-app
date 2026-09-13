@@ -1,0 +1,106 @@
+# ==========================================
+# 1. Compiled & Build Output
+# ==========================================
+/dist
+/build
+*.tsbuildinfo
+.tsbuildinfo
+
+# ==========================================
+# 2. Dependencies
+# ==========================================
+/node_modules
+/.pnp
+.pnp.js
+
+# ==========================================
+# 3. Environment & Security (CRITICAL)
+# ==========================================
+# Abaikan semua file .env yang berisi credentials asli
+.env
+.env.*
+.env*.local
+# Kecualikan .env.example agar reviewer dapat melihat template config
+!.env.example
+
+# ==========================================
+# 4. User Uploads / Media Storage
+# ==========================================
+/uploads/*
+!/uploads/.gitkeep
+/storage/*
+!/storage/.gitkeep
+public/uploads/*
+!public/uploads/.gitkeep
+
+# ==========================================
+# 5. Logs & Debug
+# ==========================================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================================
+# 6. Test & Coverage
+# ==========================================
+/coverage
+/.nyc_output
+
+# ==========================================
+# 7. IDE & Editor Config
+# ==========================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+*.sublime-workspace
+
+# ==========================================
+# 8. AI Assistants & Generated Skills
+# ==========================================
+.agents
+.claude
+.cursor
+.windsurf
+.devin
+skills-lock.json
+
+# ==========================================
+# 9. Operating System Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ==========================================
+# 10. Database Dumps & Local SQLite (if any)
+# ==========================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sql
+!prisma/migrations/**/*.sql
+
+# ==========================================
+# 11. Local Documentation & Guides
+# ==========================================
+docs/

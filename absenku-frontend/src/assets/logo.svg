@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <linearGradient id="indigoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+  </defs>
+
+  <!-- Deep Indigo to Violet Gradient Circle (Center: 100, 100 | Radius: 100) -->
+  <circle cx="100" cy="100" r="100" fill="url(#indigoGrad)" />
+
+  <!-- Pure Vector Geometric Letter 'A', Optically & Mathematically Dead-Centered at (100, 100) -->
+  <g transform="matrix(1, 0, -0.14, 1, 14, 0)">
+    <path
+      fill="#FFFFFF"
+      fill-rule="evenodd"
+      d="M 88 45
+         L 112 45
+         L 152 155
+         L 126 155
+         L 116 126
+         L 84 126
+         L 74 155
+         L 48 155
+         Z
+         M 100 74
+         L 114 106
+         L 86 106
+         Z"
+    />
+  </g>
+</svg>
