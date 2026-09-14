@@ -27,22 +27,24 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
   onRetake,
 }) => {
   return (
-    <div className="relative rounded-2xl overflow-hidden aspect-[16/9] max-h-[340px] bg-slate-950 border border-slate-200/80 group select-none flex items-center justify-center">
+    <div className="relative rounded-2xl overflow-hidden aspect-video w-full bg-slate-950 border border-slate-200/80 group select-none flex items-center justify-center isolate [transform:translateZ(0)]">
       {photoPreview ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={photoPreview}
             alt="Foto Presensi Karyawan"
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover object-center rounded-2xl"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 pointer-events-none" />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 pointer-events-none" />
 
           <div className="absolute bottom-3 inset-x-3 flex items-center justify-between gap-2 z-20">
             {clockInSuccess && serverTimestamp ? (
               <div className="inline-flex items-center gap-1.5 text-white/95 text-[10px] sm:text-[11px] font-medium bg-slate-900/80 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-emerald-500/40 shadow-sm whitespace-nowrap">
                 <CheckIcon className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                <span className="text-emerald-400 font-semibold">Terverifikasi:</span>
+                <span className="text-emerald-400 font-semibold">
+                  Terverifikasi:
+                </span>
                 <span>{serverTimestamp}</span>
               </div>
             ) : (
@@ -68,13 +70,13 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
             autoPlay
             playsInline
             muted
-            className={`w-full h-full object-cover object-center transform -scale-x-100 ${
+            className={`w-full h-full object-cover object-center rounded-2xl transform -scale-x-100 ${
               isCameraStreaming ? "block" : "hidden"
             }`}
           />
 
           {isCameraStreaming && (
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/30 pointer-events-none" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/30 pointer-events-none" />
           )}
 
           {!isCameraStreaming && (

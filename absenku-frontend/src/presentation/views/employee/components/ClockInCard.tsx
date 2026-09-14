@@ -79,31 +79,33 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
           )}
         </div>
 
-        <div className="rounded-2xl bg-indigo-50/50 border border-indigo-100/70 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 flex-shrink-0">
-              <ClockIcon className="w-5 h-5" />
+        <div className="rounded-2xl bg-indigo-50/50 border border-indigo-100/70 p-3 sm:p-3.5 space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 flex-shrink-0 mt-0.5 sm:mt-0">
+              <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <div className="flex items-baseline gap-2">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <span className="text-sm sm:text-base font-bold text-slate-900">
                   Jam Kerja Reguler
                 </span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-indigo-100/80 text-indigo-700">
+                <span className="text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-md bg-indigo-100/90 text-indigo-700 whitespace-nowrap">
                   08:00 - 17:00 WIB
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 leading-snug">
                 Pastikan wajah terlihat jelas dan berada di area presensi
               </p>
             </div>
           </div>
 
-          <div className="sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-indigo-100/70 flex-shrink-0">
-            <p className="text-[11px] text-slate-400 font-medium">
+          <div className="border-t sm:border-t-0 pt-2 sm:pt-0 border-indigo-100/80 flex sm:flex-col items-center sm:items-end justify-between sm:justify-center flex-shrink-0">
+            <span className="text-[11px] text-slate-500 sm:text-slate-400 font-medium sm:text-[10px] sm:uppercase sm:tracking-wider">
               Batas Toleransi
-            </p>
-            <p className="text-xs font-bold text-slate-800">s/d 08:30 WIB</p>
+            </span>
+            <span className="text-xs font-bold text-indigo-950 sm:text-slate-800 bg-indigo-100/80 sm:bg-transparent px-2 sm:px-0 py-0.5 sm:py-0 rounded-md">
+              s/d 08:30 WIB
+            </span>
           </div>
         </div>
 
@@ -127,8 +129,8 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
             <div className="flex items-center gap-2">
               <CheckIcon className="w-4 h-4 text-emerald-600 flex-shrink-0" />
               <span className="font-semibold">
-                Presensi berhasil dicatat pada {attendanceRecord?.time || "hari ini"}.
-                Selamat bekerja!
+                Presensi berhasil dicatat pada{" "}
+                {attendanceRecord?.time || "hari ini"}. Selamat bekerja!
               </span>
             </div>
             <button
@@ -204,11 +206,10 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
           </button>
         )}
 
-        <p className="text-center text-[10px] sm:text-[11px] text-slate-400 flex items-start sm:items-center justify-center gap-1.5 font-medium leading-relaxed max-w-sm mx-auto">
-          <ShieldCheckIcon className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5 sm:mt-0" />
-          <span>
-            Data presensi diverifikasi dan dienkripsi secara aman sesuai
-            protokol perusahaan.
+        <p className="text-center text-[10px] sm:text-[11px] text-slate-400 font-medium leading-relaxed">
+          <ShieldCheckIcon className="w-3.5 h-3.5 text-slate-400 inline-block mr-1.5 align-[-2px] flex-shrink-0" />
+          <span className="sm:whitespace-nowrap">
+            Data presensi diverifikasi dan dienkripsi secara aman sesuai protokol perusahaan.
           </span>
         </p>
       </div>
