@@ -1,6 +1,7 @@
 import axios from "axios";
 import { ApiError, getApiErrorMessage } from "./api-error";
-import { tokenStorage } from "./token-storage";
+import { authStorage } from "./auth-storage";
+import Cookies from "js-cookie";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL!,
@@ -11,17 +12,6 @@ export const apiClient = axios.create({
   timeout: 10000,
 });
 
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = tokenStorage.getToken();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
-
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -29,13 +19,43 @@ apiClient.interceptors.response.use(
     const message = getApiErrorMessage(error);
 
     if (statusCode === 401 && typeof window !== "undefined") {
-      tokenStorage.clearAuth();
+      authStorage.clearAuth();
+      Cookies.remove(process.env.NEXT_PUBLIC_ID_COOKIE_TOKEN!);
 
       if (!window.location.pathname.includes("/login")) {
-        window.location.href = "/login?session=expired";
+        window.location.replace("/login?session=expired");
       }
     }
 
     return Promise.reject(new ApiError(message, statusCode, error));
   },
 );
+
+export const getServerApiClient = async () => {
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const cookieName = process.env.NEXT_PUBLIC_ID_COOKIE_TOKEN || "_AT_";
+
+  const token =
+    cookieStore.get(cookieName)?.value ||
+    cookieStore.get("_AT_")?.value ||
+    cookieStore.get("_T_")?.value;
+
+  if (!token) {
+    console.warn(
+      `[getServerApiClient] Cookie '${cookieName}' tidak ditemukan di request header!`,
+    );
+  }
+
+  const instance = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000",
+    withCredentials: true,
+    timeout: 10000,
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `${cookieName}=${token}`,
+    },
+  });
+
+  return instance;
+};

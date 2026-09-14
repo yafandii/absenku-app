@@ -61,6 +61,7 @@ export class UsersService {
             name: true,
           },
         },
+        isActive: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -81,6 +82,7 @@ export class UsersService {
         email: dto.email,
         role: dto.role,
         divisionId: dto.divisionId,
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
       },
     });
     const { password, ...result } = user;
@@ -103,6 +105,26 @@ export class UsersService {
     return {
       message: 'User berhasil dihapus',
     };
+  }
+
+  async findMe(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        name: true,
+        email: true,
+        role: true,
+        divisionId: true,
+        division: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        isActive: true,
+        createdAt: true,
+      },
+    });
   }
 
   private async generateUserId(): Promise<string> {

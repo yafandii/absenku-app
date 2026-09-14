@@ -1,5 +1,6 @@
 import { Role } from '@prisma/client';
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsInt,
@@ -34,4 +35,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsInt({ message: 'ID divisi harus berupa angka' })
   divisionId: number;
+
+  @IsOptional()
+  @IsBoolean({ message: 'isActive harus berupa boolean' })
+  isActive?: boolean;
 }

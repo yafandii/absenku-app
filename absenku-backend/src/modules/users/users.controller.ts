@@ -6,6 +6,7 @@ import {
   UseGuards,
   Put,
   Delete,
+  Param,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,6 +16,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DeleteUserDto } from './dto/delete-user.dto';
+import { GetUser } from '../../common/decorators/get-user.decorator';
 
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller('users')
@@ -28,7 +30,7 @@ export class UsersController {
   }
 
   @Roles(Role.HRD)
-  @Get()
+  @Get('all')
   findAll() {
     return this.usersService.findAll();
   }
@@ -43,5 +45,10 @@ export class UsersController {
   @Delete('delete')
   delete(@Body() dto: DeleteUserDto) {
     return this.usersService.delete(dto);
+  }
+
+  @Get()
+  findMe(@GetUser('id') userId: string) {
+    return this.usersService.findMe(userId);
   }
 }

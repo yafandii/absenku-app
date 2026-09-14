@@ -1,15 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiClient } from "@/infrastructure/http/api-client";
-import { API_ENDPOINTS } from "@/infrastructure/http/endpoints";
+import { LoginUseCase } from "@/domain/use-cases/auth/login.use-case";
+import { AuthRepositoryImpl } from "@/data/repositories/auth.repository.impl";
 import { getApiErrorMessage } from "@/infrastructure/http/api-error";
-import { tokenStorage } from "@/infrastructure/http/token-storage";
 
 export interface LoginState {
   nik: string;
   password: string;
   showPassword: boolean;
-  rememberMe: boolean;
   isLoading: boolean;
   errorMessage: string | null;
 }
@@ -18,28 +16,23 @@ export interface LoginActions {
   setNik: (value: string) => void;
   setPassword: (value: string) => void;
   toggleShowPassword: () => void;
-  setRememberMe: (value: boolean) => void;
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleSubmit: (e: React.SubmitEvent<HTMLFormElement>) => Promise<void>;
   clearError: () => void;
 }
 
-export function useLogin(): { state: LoginState; actions: LoginActions } {
+const defaultLoginUseCase = new LoginUseCase(new AuthRepositoryImpl());
+
+export function useLogin(loginUseCase: LoginUseCase = defaultLoginUseCase): {
+  state: LoginState;
+  actions: LoginActions;
+} {
   const router = useRouter();
 
   const [nik, setNik] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    const savedNik = tokenStorage.getRememberedNik();
-    if (savedNik) {
-      setNik(savedNik);
-      setRememberMe(true);
-    }
-  }, []);
 
   const toggleShowPassword = () => {
     setShowPassword((prev) => !prev);
@@ -49,7 +42,7 @@ export function useLogin(): { state: LoginState; actions: LoginActions } {
     setErrorMessage(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -67,31 +60,12 @@ export function useLogin(): { state: LoginState; actions: LoginActions } {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, {
+      await loginUseCase.execute({
         id: trimmedNik,
         password: password,
       });
 
-      const data = response.data;
-      const token = data?.access_token || data?.token;
-      const user = data?.user || data?.data;
-
-      if (token) {
-        tokenStorage.setToken(token);
-      }
-
-      if (user) {
-        tokenStorage.setUser(user);
-      }
-
-      if (rememberMe) {
-        tokenStorage.setRememberedNik(trimmedNik);
-      } else {
-        tokenStorage.removeRememberedNik();
-      }
-
-      alert("login berhasil");
-      // router.push("/dashboard");
+      router.push("/dashboard");
     } catch (err: unknown) {
       setErrorMessage(getApiErrorMessage(err));
     } finally {
@@ -104,7 +78,6 @@ export function useLogin(): { state: LoginState; actions: LoginActions } {
       nik,
       password,
       showPassword,
-      rememberMe,
       isLoading,
       errorMessage,
     },
@@ -118,7 +91,6 @@ export function useLogin(): { state: LoginState; actions: LoginActions } {
         if (errorMessage) setErrorMessage(null);
       },
       toggleShowPassword,
-      setRememberMe,
       handleSubmit,
       clearError,
     },

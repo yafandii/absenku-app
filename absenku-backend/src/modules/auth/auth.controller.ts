@@ -25,7 +25,7 @@ export class AuthController {
     res.cookie(process.env.ACCESS_TOKEN!, result.accessToken, {
       httpOnly: true,
       secure: false, // Set to true in production with HTTPS
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -38,7 +38,7 @@ export class AuthController {
     res.clearCookie(process.env.ACCESS_TOKEN!, {
       httpOnly: true,
       secure: false,
-      sameSite: 'strict',
+      sameSite: 'lax',
     });
     return { message: 'Logout success' };
   }

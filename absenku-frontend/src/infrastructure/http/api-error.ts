@@ -10,7 +10,7 @@ export class ApiError extends Error {
   constructor(
     public message: string,
     public statusCode: number = 500,
-    public rawError?: unknown
+    public rawError?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
@@ -27,10 +27,13 @@ export function getApiErrorMessage(error: unknown): string {
     const axiosErr = error as AxiosError<NestErrorResponse>;
 
     if (!axiosErr.response) {
-      if (axiosErr.code === "ECONNABORTED" || axiosErr.message.includes("timeout")) {
+      if (
+        axiosErr.code === "ECONNABORTED" ||
+        axiosErr.message.includes("timeout")
+      ) {
         return "Koneksi ke server timeout. Silakan coba beberapa saat lagi.";
       }
-      return "Tidak dapat terhubung ke server backend. Pastikan server aktif dan koneksi stabil.";
+      return "Tidak dapat terhubung ke server. Pastikan koneksi anda stabil.";
     }
 
     const { status, data } = axiosErr.response;
@@ -58,7 +61,7 @@ export function getApiErrorMessage(error: unknown): string {
       case 500:
       case 502:
       case 503:
-        return "Terjadi kendala pada server backend. Silakan hubungi tim IT.";
+        return "Terjadi kendala pada server. Silakan coba beberapa saat lagi.";
       default:
         return data?.error || `Terjadi kesalahan (Kode: ${status}).`;
     }

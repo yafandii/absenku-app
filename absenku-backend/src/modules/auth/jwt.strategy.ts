@@ -29,6 +29,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         'Pengguna tidak valid atau sudah dihapus',
       );
     }
+    if (!user.isActive) {
+      throw new UnauthorizedException('Akun Anda sudah dinonaktifkan');
+    }
     const { password, ...result } = user;
     return result;
   }

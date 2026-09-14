@@ -1,33 +1,9 @@
-const TOKEN_KEY = "token";
 const USER_KEY = "user";
 const REMEMBERED_NIK_KEY = "remembered_nik";
 
 const isClient = typeof window !== "undefined";
 
-export const tokenStorage = {
-  getToken: (): string | null => {
-    if (!isClient) return null;
-    try {
-      return localStorage.getItem(TOKEN_KEY);
-    } catch {
-      return null;
-    }
-  },
-
-  setToken: (token: string): void => {
-    if (!isClient) return;
-    try {
-      localStorage.setItem(TOKEN_KEY, token);
-    } catch {}
-  },
-
-  removeToken: (): void => {
-    if (!isClient) return;
-    try {
-      localStorage.removeItem(TOKEN_KEY);
-    } catch {}
-  },
-
+export const authStorage = {
   getUser: <T = unknown>(): T | null => {
     if (!isClient) return null;
     try {
@@ -55,7 +31,6 @@ export const tokenStorage = {
   clearAuth: (): void => {
     if (!isClient) return;
     try {
-      localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
     } catch {}
   },

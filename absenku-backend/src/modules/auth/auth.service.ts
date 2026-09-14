@@ -18,6 +18,11 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Id atau Password salah');
     }
+    if (!user.isActive) {
+      throw new UnauthorizedException(
+        'Akun Anda dinonaktifkan. Silakan hubungi HRD',
+      );
+    }
     const isMatch = await bcrypt.compare(dto.password, user.password);
 
     if (!isMatch) {
@@ -34,6 +39,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         name: user.name,
+        isActive: user.isActive,
       },
     };
   }
