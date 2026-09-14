@@ -29,7 +29,6 @@ export default async function Page() {
     user = fetchedUser;
     attendances = fetchedAttendances;
   } catch (error) {
-    // console.error("[Dashboard SSR] Gagal memuat user/absensi:", error);
     user = null;
   }
 

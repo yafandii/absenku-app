@@ -1,5 +1,10 @@
 export interface AttendanceEntity {
   id: string;
+  userId: string;
+  photoUrl: string;
+  latitude: number;
+  longitude: number;
+  timestamp: string;
   date: string;
   time: string;
   type: string;
@@ -9,4 +14,3 @@ export interface AttendanceEntity {
 }
 
 export type Attendance = AttendanceEntity;
-

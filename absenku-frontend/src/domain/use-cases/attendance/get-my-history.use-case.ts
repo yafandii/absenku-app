@@ -5,6 +5,13 @@ export class GetMyHistoryUseCase {
   constructor(private attendanceRepository: AttendanceRepository) {}
 
   async execute(): Promise<AttendanceEntity[]> {
-    return this.attendanceRepository.getMyHistory();
+    try {
+      const response = await this.attendanceRepository.getMyHistory();
+      console.log("Response", response);
+      return response;
+    } catch (error) {
+      console.log("Error fetching attendances", error);
+      return [];
+    }
   }
 }

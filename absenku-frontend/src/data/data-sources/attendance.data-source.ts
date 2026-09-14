@@ -3,12 +3,13 @@ import { API_ENDPOINTS } from "@/infrastructure/http/endpoints";
 import {
   ClockInRequestDto,
   AttendanceResponseDto,
+  PaginatedAttendanceResponseDto,
 } from "@/data/dto/attendance.dto";
 import { AxiosInstance } from "axios";
 
 export interface AttendanceDataSource {
   clockIn(request: ClockInRequestDto): Promise<AttendanceResponseDto>;
-  getMyHistory(): Promise<AttendanceResponseDto[]>;
+  getMyHistory(): Promise<PaginatedAttendanceResponseDto>;
   getToday(): Promise<AttendanceResponseDto | null>;
 }
 
@@ -26,10 +27,11 @@ export class AttendanceRemoteDataSource implements AttendanceDataSource {
     return response.data;
   }
 
-  async getMyHistory(): Promise<AttendanceResponseDto[]> {
-    const response = await this.serverApi.get<AttendanceResponseDto[]>(
+  async getMyHistory(): Promise<PaginatedAttendanceResponseDto> {
+    const response = await this.serverApi.get<PaginatedAttendanceResponseDto>(
       API_ENDPOINTS.ATTENDANCE.MYHISTORY,
     );
+
     return response.data;
   }
 

@@ -2,14 +2,74 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../providers/prisma/prisma.service';
 import { ClockInDto } from './dto/clock-in.dto';
 import { MyHistoryQueryDto } from './dto/my-history-query.dto';
-import { Prisma } from '@prisma/client';
+import { Attendance, Prisma } from '@prisma/client';
 import { FilterAttendanceDto } from './dto/filter-attendance.dto';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { extname, join } from 'path';
+import { ATTENDANCE_CONFIG } from './constants/attendance.constant';
+
+export interface FormattedAttendance {
+  id: string;
+  userId: string;
+  photoUrl: string;
+  latitude: number;
+  longitude: number;
+  timestamp: string;
+  type: string;
+  status: 'on_time' | 'late';
+  statusLabel: string;
+}
 
 @Injectable()
 export class AttendancesService {
   constructor(private prisma: PrismaService) {}
+
+  private formatAttendance(att: Attendance): FormattedAttendance {
+    const dateObj = new Date(att.timestamp);
+    const timeZone = ATTENDANCE_CONFIG.TIMEZONE;
+
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    });
+
+    const parts = formatter.formatToParts(dateObj);
+    const hourPart = parts.find((p) => p.type === 'hour')?.value ?? '0';
+    const minutePart = parts.find((p) => p.type === 'minute')?.value ?? '0';
+    const hours = parseInt(hourPart, 10);
+    const minutes = parseInt(minutePart, 10);
+
+    const isLate =
+      hours > ATTENDANCE_CONFIG.WORK_START_HOUR ||
+      (hours === ATTENDANCE_CONFIG.WORK_START_HOUR &&
+        minutes > ATTENDANCE_CONFIG.WORK_START_MINUTE);
+
+    const status: 'on_time' | 'late' = isLate ? 'late' : 'on_time';
+    const statusLabel = isLate ? 'Terlambat' : 'Tepat Waktu';
+
+    const dateFormatted = new Intl.DateTimeFormat('id-ID', {
+      timeZone,
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(dateObj);
+
+    const timeFormatted = `${hourPart.padStart(2, '0')}:${minutePart.padStart(2, '0')}`;
+
+    return {
+      id: String(att.id),
+      userId: att.userId,
+      photoUrl: att.photoUrl,
+      latitude: att.latitude ?? 0,
+      longitude: att.longitude ?? 0,
+      timestamp: dateObj.toISOString(),
+      type: ATTENDANCE_CONFIG.DEFAULT_TYPE,
+      status,
+      statusLabel,
+    };
+  }
 
   async clockIn(userId: string, file: Express.Multer.File, dto: ClockInDto) {
     const todayStart = new Date();
@@ -91,7 +151,7 @@ export class AttendancesService {
 
     return {
       alreadyAttendance: !!attendance,
-      data: attendance || null,
+      data: attendance ? this.formatAttendance(attendance) : null,
     };
   }
 
@@ -135,6 +195,8 @@ export class AttendancesService {
 
     const totalPages = Math.ceil(totalItems / limitNum);
 
+    const formattedData = attendances.map((att) => this.formatAttendance(att));
+
     return {
       pagination: {
         page: pageNum,
@@ -144,7 +206,7 @@ export class AttendancesService {
         hasNext: pageNum < totalPages,
         hasPrev: pageNum > 1 && totalPages > 0,
       },
-      data: attendances,
+      data: formattedData,
     };
   }
 

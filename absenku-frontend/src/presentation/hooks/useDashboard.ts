@@ -74,7 +74,7 @@ export function useDashboard({
       return "opera://settings/content/camera";
     }
     if (ua.includes("firefox")) {
-      return "about:preferences#privacy";
+      return "about:preferences#permissionsData";
     }
     return "chrome://settings/content/camera";
   }, []);
@@ -254,9 +254,8 @@ export function useDashboard({
     };
   }, [clockInSuccess, photoPreview, stopMediaTracks]);
 
-  const [recentAttendances, setRecentAttendances] = useState<AttendanceItem[]>(
-    initialAttendances,
-  );
+  const [recentAttendances, setRecentAttendances] =
+    useState<AttendanceItem[]>(initialAttendances);
 
   const handleLogout = async () => {
     try {
@@ -295,6 +294,11 @@ export function useDashboard({
         type: "Presensi Masuk",
         status: "on_time",
         statusLabel: "Tepat Waktu",
+        latitude: 0,
+        longitude: 0,
+        userId: "",
+        photoUrl: photoToSubmit,
+        timestamp: now.toISOString(),
       };
       setAttendanceRecord(fallbackRecord);
       setClockInSuccess(true);

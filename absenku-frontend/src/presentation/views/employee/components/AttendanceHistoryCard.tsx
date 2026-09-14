@@ -1,6 +1,9 @@
 import React from "react";
 import { AttendanceItem } from "@/presentation/hooks/useDashboard";
-import { CalendarIcon, ClockIcon } from "@/presentation/components/common/icons";
+import {
+  CalendarIcon,
+  ClockIcon,
+} from "@/presentation/components/common/icons";
 import { EmptyState } from "@/presentation/components/common/EmptyState";
 
 interface AttendanceHistoryCardProps {
@@ -39,9 +42,13 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative flex-shrink-0">
                     <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-600">
-                      {item.date.includes("Hari Ini")
-                        ? "HI"
-                        : item.date.slice(0, 2)}
+                      {/* photo url */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${item.photoUrl}`}
+                        alt={item.date}
+                        className="w-full h-full object-cover rounded-full"
+                      />
                     </div>
                     <div
                       className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[9px] text-white border-2 border-white ${
@@ -60,11 +67,12 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
                     </p>
                     <p className="text-[11px] text-slate-400 font-medium truncate">
                       {item.time}{" "}
-                      <span className="hidden sm:inline">&bull; {item.type}</span>
+                      <span className="hidden sm:inline">
+                        &bull; {item.type}
+                      </span>
                     </p>
                   </div>
                 </div>
-
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold flex-shrink-0 ${
                     item.status === "on_time"
@@ -108,7 +116,7 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
             Ringkasan Kehadiran Bulan Ini
           </p>
           <span className="text-[10px] font-medium text-slate-400">
-            September 2026
+            September 2026 {}
           </span>
         </div>
 

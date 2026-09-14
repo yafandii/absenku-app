@@ -15,29 +15,49 @@ export class AttendanceRepositoryImpl implements AttendanceRepository {
     const response = await this.remoteDataSource.clockIn(payload);
     return {
       id: response.id,
-      date: response.date,
-      time: response.time,
+      userId: response.userId,
+      photoUrl: response.photoUrl,
+      latitude: response.latitude,
+      longitude: response.longitude,
+      timestamp: response.timestamp,
+      date: new Date(response.timestamp).toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+      time: new Date(response.timestamp).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       type: response.type,
       status: response.status,
-      statusLabel:
-        response.statusLabel ||
-        (response.status === "on_time" ? "Tepat Waktu" : "Terlambat"),
-      avatarUrl: response.avatarUrl,
+      statusLabel: response.statusLabel || "",
     };
   }
 
   async getMyHistory(): Promise<AttendanceEntity[]> {
     const response = await this.remoteDataSource.getMyHistory();
-    return response.map((item) => ({
+    return response.data.map((item) => ({
       id: item.id,
-      date: item.date,
-      time: item.time,
+      userId: item.userId,
+      photoUrl: item.photoUrl,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      timestamp: item.timestamp,
+      date: new Date(item.timestamp).toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+      time: new Date(item.timestamp).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       type: item.type,
       status: item.status,
-      statusLabel:
-        item.statusLabel ||
-        (item.status === "on_time" ? "Tepat Waktu" : "Terlambat"),
-      avatarUrl: item.avatarUrl,
+      statusLabel: item.statusLabel || "",
     }));
   }
 
@@ -46,14 +66,25 @@ export class AttendanceRepositoryImpl implements AttendanceRepository {
     if (!response) return null;
     return {
       id: response.id,
-      date: response.date,
-      time: response.time,
+      userId: response.userId,
+      photoUrl: response.photoUrl,
+      latitude: response.latitude,
+      longitude: response.longitude,
+      timestamp: response.timestamp,
+      //hari, tgl bulan tahun
+      date: new Date(response.timestamp).toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+      time: new Date(response.timestamp).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       type: response.type,
       status: response.status,
-      statusLabel:
-        response.statusLabel ||
-        (response.status === "on_time" ? "Tepat Waktu" : "Terlambat"),
-      avatarUrl: response.avatarUrl,
+      statusLabel: response.statusLabel || "",
     };
   }
 }
