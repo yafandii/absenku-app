@@ -1,4 +1,6 @@
 import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { UserProfile } from "@/presentation/hooks/useDashboard";
 import { BrandLogo } from "@/presentation/components/common/BrandLogo";
 import {
@@ -10,7 +12,7 @@ import {
   CloseIcon,
 } from "@/presentation/components/common/icons";
 
-interface SidebarProps {
+export interface AppSidebarProps {
   user: UserProfile;
   onLogout: () => void;
   onChangePassword: () => void;
@@ -18,14 +20,19 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
+export const AppSidebar: React.FC<AppSidebarProps> = ({
   user,
   onLogout,
   onChangePassword,
   isOpen = false,
   onClose,
 }) => {
+  const pathname = usePathname();
   const isHrd = user.role?.toLowerCase() === "hrd";
+
+  const isAttendanceActive = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isEmployeesActive = pathname === "/employees" || pathname.startsWith("/employees/");
+  const isMonitorActive = pathname === "/live-monitor" || pathname.startsWith("/live-monitor/");
 
   return (
     <>
@@ -59,45 +66,69 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="space-y-5">
             <div>
               <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase px-3 mb-2">
-                Presensi
+                Menu Pribadi
               </p>
 
               <nav className="space-y-1">
-                <button
-                  type="button"
+                <Link
+                  href="/dashboard"
                   onClick={onClose}
-                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 text-white shadow-md shadow-indigo-600/25 cursor-pointer text-left transition-all"
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    isAttendanceActive
+                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/25"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
                 >
-                  <CameraIcon className="w-4 h-4 flex-shrink-0" />
+                  <CameraIcon
+                    className={`w-4 h-4 flex-shrink-0 ${
+                      isAttendanceActive ? "text-white" : "text-slate-400"
+                    }`}
+                  />
                   <span>Presensi Saya</span>
-                </button>
+                </Link>
               </nav>
             </div>
 
             {isHrd && (
               <div>
                 <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase px-3 mb-2">
-                  Manajemen HRD
+                  Pengelolaan Tim
                 </p>
 
                 <nav className="space-y-1">
-                  <button
-                    type="button"
+                  <Link
+                    href="/employees"
                     onClick={onClose}
-                    className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 cursor-pointer text-left transition-colors"
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      isEmployeesActive
+                        ? "bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-600/25"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    }`}
                   >
-                    <MonitorIcon className="w-4 h-4 flex-shrink-0 text-slate-400" />
-                    <span>Monitoring Absensi</span>
-                  </button>
+                    <UsersIcon
+                      className={`w-4 h-4 flex-shrink-0 ${
+                        isEmployeesActive ? "text-white" : "text-slate-400"
+                      }`}
+                    />
+                    <span>Kelola Karyawan</span>
+                  </Link>
 
-                  <button
-                    type="button"
+                  <Link
+                    href="/live-monitor"
                     onClick={onClose}
-                    className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 cursor-pointer text-left transition-colors"
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      isMonitorActive
+                        ? "bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-600/25"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    }`}
                   >
-                    <UsersIcon className="w-4 h-4 flex-shrink-0 text-slate-400" />
-                    <span>Master Karyawan</span>
-                  </button>
+                    <MonitorIcon
+                      className={`w-4 h-4 flex-shrink-0 ${
+                        isMonitorActive ? "text-white" : "text-slate-400"
+                      }`}
+                    />
+                    <span>Monitoring Presensi</span>
+                  </Link>
                 </nav>
               </div>
             )}

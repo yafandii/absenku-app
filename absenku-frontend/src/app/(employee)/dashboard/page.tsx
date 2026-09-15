@@ -3,7 +3,7 @@ import { AttendanceRemoteDataSource } from "@/data/data-sources/attendance.data-
 import { AttendanceRepositoryImpl } from "@/data/repositories/attendance.repository.impl";
 import { AuthRemoteDataSource } from "@/data/data-sources/auth.data-source";
 import { AuthRepositoryImpl } from "@/data/repositories/auth.repository.impl";
-import { DashboardPage } from "@/presentation/views/employee/DashboardPage";
+import { DashboardPage } from "@/presentation/views/attendance/DashboardPage";
 import { redirect } from "next/navigation";
 import { User } from "@/domain/entities/user.entity";
 import { AttendanceEntity } from "@/domain/entities/attendance.entity";

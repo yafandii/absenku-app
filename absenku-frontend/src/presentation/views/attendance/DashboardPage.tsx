@@ -10,7 +10,7 @@ import {
   LogoutIcon,
   CameraIcon,
 } from "@/presentation/components/common/icons";
-import { Sidebar } from "./components/Sidebar";
+import { AppSidebar } from "@/presentation/components/layout/AppSidebar";
 import { ClockInCard } from "./components/ClockInCard";
 import { AttendanceHistoryCard } from "./components/AttendanceHistoryCard";
 import {
@@ -80,7 +80,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <BrandLogo size="md" />
       </div>
 
-      <Sidebar
+      <AppSidebar
         user={user}
         onLogout={() => setIsLogoutConfirmOpen(true)}
         onChangePassword={() => setIsPasswordModalOpen(true)}
