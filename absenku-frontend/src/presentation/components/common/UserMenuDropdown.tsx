@@ -16,7 +16,7 @@ export const UserMenuDropdown: React.FC<UserMenuDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const isHrd = user.role?.toLowerCase() === "hrd";
+  const isHrd = user.role?.toUpperCase() === "HRD";
   const initial = (user.name || "U").charAt(0).toUpperCase();
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './providers/prisma/prisma.module';
 import { AttendancesModule } from './modules/attendances/attendances.module';
+import { MastersModule } from './modules/masters/masters.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -18,6 +19,7 @@ import { join } from 'path';
     AuthModule,
     UsersModule,
     AttendancesModule,
+    MastersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

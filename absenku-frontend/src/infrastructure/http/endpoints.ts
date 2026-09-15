@@ -18,4 +18,7 @@ export const API_ENDPOINTS = {
     UPDATE: "/users/update",
     DELETE: "/users/delete",
   },
+  MASTER: {
+    DIVISIONS: "/masters/divisions",
+  },
 };

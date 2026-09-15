@@ -1,9 +1,9 @@
 import {
   IsEmail,
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsOptional,
+  IsString,
   MinLength,
 } from 'class-validator';
 import { Role } from '@prisma/client';
@@ -22,6 +22,6 @@ export class CreateUserDto {
   role: Role;
 
   @IsOptional()
-  @IsInt({ message: 'ID divisi harus berupa angka' })
-  divisionId?: number;
+  @IsString({ message: 'ID divisi harus berupa string' })
+  divisionId?: string;
 }

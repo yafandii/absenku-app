@@ -23,7 +23,7 @@ model User {
   password    String
   role        Role         @default(EMPLOYEE)
   isActive    Boolean      @default(true)
-  divisionId  Int?
+  divisionId  String?
   division    Division?    @relation(fields: [divisionId], references: [id], onDelete: SetNull)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -33,7 +33,7 @@ model User {
 }
 
 model Division {
-  id        Int      @id @default(autoincrement())
+  id        String   @id
   name      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -3,9 +3,8 @@ import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class FilterAttendanceDto {
   @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'divisionId harus berupa angka' })
-  divisionId?: number;
+  @IsString({ message: 'divisionId harus berupa string' })
+  divisionId?: string;
 
   @IsOptional()
   @IsString()

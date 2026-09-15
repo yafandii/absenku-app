@@ -3,7 +3,6 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -33,8 +32,8 @@ export class UpdateUserDto {
   role: Role;
 
   @IsOptional()
-  @IsInt({ message: 'ID divisi harus berupa angka' })
-  divisionId: number;
+  @IsString({ message: 'ID divisi harus berupa string' })
+  divisionId?: string;
 
   @IsOptional()
   @IsBoolean({ message: 'isActive harus berupa boolean' })

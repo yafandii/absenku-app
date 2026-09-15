@@ -28,11 +28,14 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onClose,
 }) => {
   const pathname = usePathname();
-  const isHrd = user.role?.toLowerCase() === "hrd";
+  const isHrd = user.role?.toUpperCase() === "HRD";
 
-  const isAttendanceActive = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-  const isEmployeesActive = pathname === "/employees" || pathname.startsWith("/employees/");
-  const isMonitorActive = pathname === "/live-monitor" || pathname.startsWith("/live-monitor/");
+  const isAttendanceActive =
+    pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isEmployeesActive =
+    pathname === "/employees" || pathname.startsWith("/employees/");
+  const isMonitorActive =
+    pathname === "/live-monitor" || pathname.startsWith("/live-monitor/");
 
   return (
     <>
@@ -45,7 +48,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
 
       <aside
         className={`fixed md:static inset-y-0 left-0 z-50 w-72 md:w-64 h-screen bg-white border-r border-slate-200/80 p-5 flex flex-col justify-between select-none flex-shrink-0 transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
+          isOpen
+            ? "translate-x-0 shadow-2xl"
+            : "-translate-x-full md:translate-x-0"
         }`}
       >
         <div className="space-y-6">
