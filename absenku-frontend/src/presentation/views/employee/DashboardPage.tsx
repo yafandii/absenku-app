@@ -13,37 +13,58 @@ import {
 import { Sidebar } from "./components/Sidebar";
 import { ClockInCard } from "./components/ClockInCard";
 import { AttendanceHistoryCard } from "./components/AttendanceHistoryCard";
-import { AttendanceEntity } from "@/domain/entities/attendance.entity";
+import {
+  AttendanceEntity,
+  SummaryAttendanceEntity,
+} from "@/domain/entities/attendance.entity";
 import { User } from "@/domain/entities/user.entity";
 
 interface DashboardPageProps {
   initialUser: User;
   myHistoryAttendance?: AttendanceEntity[];
+  initialTodayAttendance?: AttendanceEntity | null;
+  monthlyResumeAttendance?: SummaryAttendanceEntity | null;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   initialUser,
   myHistoryAttendance = [],
+  initialTodayAttendance = null,
+  monthlyResumeAttendance = null,
 }) => {
   const {
     user,
     isSubmitting,
     clockInSuccess,
+    clockInError,
     attendanceRecord,
     recentAttendances,
+    isClockOutSubmitting,
+    clockOutError,
     camera,
     handleLogout,
     handleClockIn,
+    handleClockOut,
     handleRetake,
   } = useDashboard({
     initialUser,
     initialAttendances: myHistoryAttendance,
+    initialTodayAttendance,
   });
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isClockInConfirmOpen, setIsClockInConfirmOpen] = useState(false);
+  const [isClockOutConfirmOpen, setIsClockOutConfirmOpen] = useState(false);
+  const [pendingClockOutPhoto, setPendingClockOutPhoto] = useState<
+    string | null
+  >(null);
+
+  const handleTriggerClockOutConfirm = (photo: string) => {
+    setPendingClockOutPhoto(photo);
+    setIsClockOutConfirmOpen(true);
+  };
 
   return (
     <div className="h-screen overflow-hidden bg-slate-50/70 text-slate-800 flex flex-col md:flex-row font-sans relative">
@@ -78,11 +99,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 camera={camera}
                 onClockIn={() => setIsClockInConfirmOpen(true)}
                 onRetake={handleRetake}
+                clockInError={clockInError}
+                onClockOut={handleTriggerClockOutConfirm}
+                isClockOutSubmitting={isClockOutSubmitting}
+                clockOutError={clockOutError}
               />
             </div>
 
             <div className="lg:col-span-5">
-              <AttendanceHistoryCard attendances={recentAttendances} />
+              <AttendanceHistoryCard
+                attendances={recentAttendances}
+                summary={monthlyResumeAttendance}
+              />
             </div>
           </div>
         </main>
@@ -122,6 +150,29 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           await handleClockIn();
         }}
         onCancel={() => setIsClockInConfirmOpen(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={isClockOutConfirmOpen}
+        title="Konfirmasi Presensi Pulang"
+        message="Pastikan Anda telah menyelesaikan seluruh pekerjaan hari ini sebelum mencatat presensi pulang."
+        confirmText="Ya, Selesaikan Kerja"
+        cancelText="Batal"
+        variant="primary"
+        isLoading={isClockOutSubmitting}
+        icon={<LogoutIcon className="w-5 h-5 rotate-180" />}
+        onConfirm={async () => {
+          const photo = pendingClockOutPhoto;
+          setIsClockOutConfirmOpen(false);
+          setPendingClockOutPhoto(null);
+          if (photo) {
+            await handleClockOut(photo);
+          }
+        }}
+        onCancel={() => {
+          setIsClockOutConfirmOpen(false);
+          setPendingClockOutPhoto(null);
+        }}
       />
     </div>
   );

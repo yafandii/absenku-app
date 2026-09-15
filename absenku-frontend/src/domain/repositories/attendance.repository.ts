@@ -1,8 +1,16 @@
-import { Attendance } from "@/domain/entities/attendance.entity";
-import { ClockInRequestDto } from "@/data/dto/attendance.dto";
+import {
+  AttendanceEntity,
+  SummaryAttendanceEntity,
+} from "@/domain/entities/attendance.entity";
+import {
+  ClockInRequestDto,
+  ClockOutRequestDto,
+} from "@/data/dto/attendance.dto";
 
 export interface AttendanceRepository {
-  clockIn(payload: ClockInRequestDto): Promise<Attendance>;
-  getMyHistory(): Promise<Attendance[]>;
-  getToday(): Promise<Attendance | null>;
+  clockIn(payload: ClockInRequestDto): Promise<AttendanceEntity>;
+  clockOut(payload: ClockOutRequestDto): Promise<AttendanceEntity>;
+  getMyHistory(): Promise<AttendanceEntity[]>;
+  getToday(): Promise<AttendanceEntity | null>;
+  getSummaryAttendance(): Promise<SummaryAttendanceEntity | null>;
 }

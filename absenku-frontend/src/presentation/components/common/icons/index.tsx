@@ -176,4 +176,5 @@ export { EyeIcon } from "./EyeIcon";
 export { EyeSlashIcon } from "./EyeSlashIcon";
 export { ArrowRightIcon } from "./ArrowRightIcon";
 export { ShieldSecurityIcon } from "./ShieldSecurityIcon";
+export { SpinnerIcon } from "./SpinnerIcon";
 

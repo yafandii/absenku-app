@@ -5,13 +5,16 @@ import {
   ClockIcon,
 } from "@/presentation/components/common/icons";
 import { EmptyState } from "@/presentation/components/common/EmptyState";
+import { SummaryAttendanceEntity } from "@/domain/entities/attendance.entity";
 
 interface AttendanceHistoryCardProps {
   attendances: AttendanceItem[];
+  summary?: SummaryAttendanceEntity | null;
 }
 
 export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
   attendances = [],
+  summary,
 }) => {
   const hasAttendances = Array.isArray(attendances) && attendances.length > 0;
 
@@ -34,9 +37,9 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
 
         {hasAttendances ? (
           <div className="divide-y divide-slate-100">
-            {attendances.map((item) => (
+            {attendances.map((item, index) => (
               <div
-                key={item.id}
+                key={item.id || `attendance-${index}`}
                 className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -66,10 +69,15 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
                       {item.date}
                     </p>
                     <p className="text-[11px] text-slate-400 font-medium truncate">
-                      {item.time}{" "}
-                      <span className="hidden sm:inline">
-                        &bull; {item.type}
-                      </span>
+                      {item.timeIn} WIB -
+                      {item.clockOutAt ? (
+                        <>{item.timeOut} WIB</>
+                      ) : (
+                        <span className="text-[11px] text-amber-600 font-medium truncate">
+                          {" "}
+                          Belum Selesai{" "}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -110,91 +118,96 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
         )}
       </div>
 
-      <div className="pt-4 border-t border-slate-100 space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-[11px] font-bold text-slate-900 tracking-tight">
-            Ringkasan Kehadiran Bulan Ini
-          </p>
-          <span className="text-[10px] font-medium text-slate-400">
-            September 2026 {}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2.5">
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-slate-500">
-                Rata-rata Kerja
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-base font-black text-slate-900 font-mono">
-                8.2
-              </span>
-              <span className="text-[10px] text-slate-400 font-semibold">
-                Jam / hari
-              </span>
-            </div>
-            <p className="text-[9px] text-slate-400">Target min. 8.0 jam</p>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-slate-500">
-                Keterlambatan
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-            </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-base font-black text-amber-600 font-mono">
-                1
-              </span>
-              <span className="text-[10px] text-slate-400 font-semibold">
-                Kali (12m)
-              </span>
-            </div>
-            <p className="text-[9px] text-emerald-600 font-medium">
-              Toleransi aman (&lt; 3x)
+      {summary && (
+        <div className="pt-4 border-t border-slate-100 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold text-slate-900 tracking-tight">
+              Ringkasan Kehadiran Bulan Ini
             </p>
+            <span className="text-[10px] font-medium text-slate-400">
+              {summary.period}
+            </span>
           </div>
+          {summary.period}
 
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-slate-500">
-                Total Masuk
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-slate-500">
+                  Total jam kerja
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-black text-slate-900 font-mono">
+                  {summary.workHours.total}
+                </span>
+                <span className="text-[10px] text-slate-400 font-semibold">
+                  Jam
+                </span>
+              </div>
+              <p className="text-[9px] text-slate-400">
+                Target min. {summary.workHours.target} jam
+              </p>
             </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-base font-black text-slate-900 font-mono">
-                22
-              </span>
-              <span className="text-[10px] text-slate-400 font-semibold">
-                / 23 Hari
-              </span>
-            </div>
-            <p className="text-[9px] text-slate-400">1 hari tersisa</p>
-          </div>
 
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium text-slate-500">
-                Tingkat Disiplin
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-slate-500">
+                  Keterlambatan
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-black text-amber-600 font-mono">
+                  1
+                </span>
+                <span className="text-[10px] text-slate-400 font-semibold">
+                  Kali
+                </span>
+              </div>
+              <p className="text-[9px] text-emerald-600 font-medium">
+                Toleransi aman (&lt; 3x)
+              </p>
             </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-base font-black text-emerald-600 font-mono">
-                95.6%
-              </span>
+
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-slate-500">
+                  Total Masuk
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-black text-slate-900 font-mono">
+                  22
+                </span>
+                <span className="text-[10px] text-slate-400 font-semibold">
+                  / 23 Hari
+                </span>
+              </div>
+              <p className="text-[9px] text-slate-400">1 hari tersisa</p>
             </div>
-            <p className="text-[9px] text-emerald-600 font-medium">
-              Performa Sangat Baik
-            </p>
+
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-medium text-slate-500">
+                  Tingkat Disiplin
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-black text-emerald-600 font-mono">
+                  95.6%
+                </span>
+              </div>
+              <p className="text-[9px] text-emerald-600 font-medium">
+                Performa Sangat Baik
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

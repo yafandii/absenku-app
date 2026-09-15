@@ -7,7 +7,7 @@ export class GetMyHistoryUseCase {
   async execute(): Promise<AttendanceEntity[]> {
     try {
       const response = await this.attendanceRepository.getMyHistory();
-      console.log("Response", response);
+
       return response;
     } catch (error) {
       console.log("Error fetching attendances", error);

@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   title: "Absenku — Sistem Presensi Web Pintar WFH",
   description:
     "Sistem Presensi Web Pintar Berbasis Face Recognition & Geolocation untuk Work From Home (WFH)",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

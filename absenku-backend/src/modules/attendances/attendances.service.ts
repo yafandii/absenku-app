@@ -6,7 +6,12 @@ import { Attendance, Prisma } from '@prisma/client';
 import { FilterAttendanceDto } from './dto/filter-attendance.dto';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { extname, join } from 'path';
-import { ATTENDANCE_CONFIG } from './constants/attendance.constant';
+import {
+  ATTENDANCE_CONFIG,
+  generateAttendanceId,
+  getWorkingDaysInMonth,
+} from './constants/attendance.constant';
+import { ClockOutDto } from './dto/clock-out.dto';
 
 export interface FormattedAttendance {
   id: string;
@@ -18,6 +23,44 @@ export interface FormattedAttendance {
   type: string;
   status: 'on_time' | 'late';
   statusLabel: string;
+  clockOutAt?: string | null;
+  clockOutPhotoUrl?: string | null;
+  clockOutLatitude?: number | null;
+  clockOutLongitude?: number | null;
+  workDurationHours?: number | null;
+  workDurationLabel?: string | null;
+  isTargetMet?: boolean | null;
+  workTimeStatus?: string | null;
+}
+
+export interface MonthlySummaryResponse {
+  period: string;
+  workHours: {
+    total: number;
+    target: number;
+    unit: string;
+    subtext: string;
+    isTargetReached: boolean;
+  };
+  lateness: {
+    count: number;
+    unit: string;
+    maxAllowed: number;
+    subtext: string;
+    status: 'safe' | 'warning' | 'danger';
+  };
+  attendance: {
+    presentDays: number;
+    totalWorkingDays: number;
+    remainingDays: number;
+    unit: string;
+    subtext: string;
+  };
+  discipline: {
+    percentage: number;
+    label: string;
+    status: 'good' | 'needs_improvement';
+  };
 }
 
 @Injectable()
@@ -49,17 +92,34 @@ export class AttendancesService {
     const status: 'on_time' | 'late' = isLate ? 'late' : 'on_time';
     const statusLabel = isLate ? 'Terlambat' : 'Tepat Waktu';
 
-    const dateFormatted = new Intl.DateTimeFormat('id-ID', {
-      timeZone,
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    }).format(dateObj);
+    let workDurationHours: number | null = null;
+    let workDurationLabel: string | null = null;
+    let isTargetMet = false;
+    let workTimeStatus: 'under_target' | 'target_met' | 'overtime' | null =
+      null;
 
-    const timeFormatted = `${hourPart.padStart(2, '0')}:${minutePart.padStart(2, '0')}`;
+    if (att.clockOutAt) {
+      const inTime = new Date(att.timestamp).getTime();
+      const outTime = new Date(att.clockOutAt).getTime();
+      const diffMs = Math.max(0, outTime - inTime);
+
+      const totalMinutes = Math.floor(diffMs / (1000 * 60));
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      workDurationHours = Number((totalMinutes / 60).toFixed(1));
+      workDurationLabel = `${hours} Jam ${minutes} Menit`;
+      isTargetMet = workDurationHours >= ATTENDANCE_CONFIG.TARGET_DAILY_HOURS;
+      if (workDurationHours < ATTENDANCE_CONFIG.TARGET_DAILY_HOURS) {
+        workTimeStatus = 'under_target';
+      } else if (workDurationHours > ATTENDANCE_CONFIG.TARGET_DAILY_HOURS) {
+        workTimeStatus = 'overtime';
+      } else {
+        workTimeStatus = 'target_met';
+      }
+    }
 
     return {
-      id: String(att.id),
+      id: att.id,
       userId: att.userId,
       photoUrl: att.photoUrl,
       latitude: att.latitude ?? 0,
@@ -68,6 +128,14 @@ export class AttendancesService {
       type: ATTENDANCE_CONFIG.DEFAULT_TYPE,
       status,
       statusLabel,
+      clockOutAt: att.clockOutAt?.toISOString(),
+      clockOutPhotoUrl: att.clockOutPhotoUrl,
+      clockOutLatitude: att.clockOutLatitude,
+      clockOutLongitude: att.clockOutLongitude,
+      workDurationHours,
+      workDurationLabel,
+      isTargetMet,
+      workTimeStatus,
     };
   }
 
@@ -88,7 +156,9 @@ export class AttendancesService {
     });
 
     if (existingAttendance) {
-      throw new BadRequestException('Anda sudah absen hari ini');
+      throw new BadRequestException(
+        'Anda sudah melakukan absen masuk hari ini',
+      );
     }
 
     const uploadDir = `./uploads/attendances/${userId}`;
@@ -103,8 +173,11 @@ export class AttendancesService {
 
     const photoUrl = `/uploads/attendances/${userId}/${fileName}`;
 
+    const id = generateAttendanceId();
+
     const attendance = await this.prisma.attendance.create({
       data: {
+        id,
         userId,
         photoUrl,
         latitude: dto.lat,
@@ -127,10 +200,78 @@ export class AttendancesService {
         },
       },
     });
-    return {
-      message: 'Absensi berhasil',
-      data: attendance,
-    };
+    return this.formatAttendance(attendance);
+  }
+
+  async clockOut(userId: string, file: Express.Multer.File, dto: ClockOutDto) {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const existingAttendance = await this.prisma.attendance.findFirst({
+      where: {
+        userId,
+        timestamp: {
+          gte: todayStart,
+          lte: todayEnd,
+        },
+      },
+    });
+
+    if (!existingAttendance) {
+      throw new BadRequestException(
+        'Anda belum melakukan absen masuk hari ini',
+      );
+    }
+
+    if (existingAttendance.clockOutAt) {
+      throw new BadRequestException(
+        'Anda sudah melakukan absen pulang hari ini',
+      );
+    }
+
+    const uploadDir = `./uploads/attendances/${userId}`;
+    if (!existsSync(uploadDir)) {
+      mkdirSync(uploadDir, { recursive: true });
+    }
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const fileName = `att-out-${uniqueSuffix}${extname(file.originalname)}`;
+    const fullPath = join(uploadDir, fileName);
+
+    writeFileSync(fullPath, file.buffer);
+
+    const clockOutPhotoUrl = `/uploads/attendances/${userId}/${fileName}`;
+
+    const attendance = await this.prisma.attendance.update({
+      where: {
+        id: existingAttendance.id,
+      },
+      data: {
+        clockOutAt: new Date(),
+        clockOutPhotoUrl,
+        clockOutLatitude: dto.lat,
+        clockOutLongitude: dto.lng,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            division: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return this.formatAttendance(attendance);
   }
 
   async findMyAttendanceToday(userId: string) {
@@ -280,5 +421,102 @@ export class AttendancesService {
       },
       data: attendances,
     };
+  }
+
+  async getMonthlySummary(userId: string): Promise<MonthlySummaryResponse> {
+    const now = new Date();
+    const year = now.getFullYear();
+    const monthIndex = now.getMonth(); // 0-11
+
+    const firstDayOfMonth = new Date(year, monthIndex, 1);
+    const lastDayOfMonth = new Date(year, monthIndex + 1, 0);
+
+    const attendances = await this.prisma.attendance.findMany({
+      where: {
+        userId,
+        timestamp: {
+          gte: firstDayOfMonth,
+          lt: lastDayOfMonth,
+        },
+      },
+    });
+
+    const formattedList = attendances.map((att) => this.formatAttendance(att));
+    const lateCount = formattedList.filter(
+      (att) => att.status === 'late',
+    ).length;
+
+    const workingDays = getWorkingDaysInMonth(year, monthIndex);
+    const lateThreshold = ATTENDANCE_CONFIG.LATE_MAX_PER_MONTH;
+
+    const dailyWorkHours =
+      ATTENDANCE_CONFIG.WORK_END_HOUR - ATTENDANCE_CONFIG.WORK_START_HOUR - 1;
+
+    const isPastWorkEndHour = now.getHours() >= ATTENDANCE_CONFIG.WORK_END_HOUR;
+    const isCurrentMonth =
+      monthIndex === now.getMonth() && year === now.getFullYear();
+
+    const completedDays = attendances.filter((att) => {
+      const attDate = new Date(att.timestamp);
+
+      const isToday =
+        isCurrentMonth &&
+        attDate.getDate() === now.getDate() &&
+        attDate.getMonth() === now.getMonth() &&
+        attDate.getFullYear() === now.getFullYear();
+
+      if (isToday) {
+        return isPastWorkEndHour;
+      }
+
+      return true;
+    }).length;
+
+    const totalWorkHours = dailyWorkHours * completedDays;
+
+    const targetMonthlyHours = ATTENDANCE_CONFIG.WORK_TARGET_IN_HOURS_MONTHLY;
+    const isTargetReached = totalWorkHours >= targetMonthlyHours;
+    const disciplinePrecentage =
+      workingDays === 0
+        ? 0
+        : Math.max(0, ((workingDays - lateCount) / workingDays) * 100).toFixed(
+            2,
+          );
+    const isDiscipline = Number(lateCount) <= lateThreshold;
+
+    const payload: MonthlySummaryResponse = {
+      period: `${firstDayOfMonth.toLocaleDateString('id-ID', {
+        month: 'long',
+        year: 'numeric',
+      })}`,
+      workHours: {
+        total: totalWorkHours,
+        target: targetMonthlyHours,
+        unit: 'jam',
+        subtext: 'Jam kerja hari ini',
+        isTargetReached,
+      },
+      lateness: {
+        count: lateCount,
+        unit: 'kali',
+        maxAllowed: lateThreshold,
+        subtext: 'Batas keterlambatan per bulan',
+        status: isDiscipline ? 'safe' : 'danger',
+      },
+      attendance: {
+        presentDays: attendances.length,
+        totalWorkingDays: workingDays,
+        remainingDays: workingDays - attendances.length,
+        unit: 'hari',
+        subtext: 'Total Masuk',
+      },
+      discipline: {
+        percentage: Number(disciplinePrecentage),
+        label: isDiscipline ? 'Sangat Baik' : 'Buruk',
+        status: isDiscipline ? 'good' : 'needs_improvement',
+      },
+    };
+
+    return payload;
   }
 }

@@ -2,30 +2,39 @@ import React from "react";
 import {
   ClockIcon,
   ShieldCheckIcon,
-  CheckIcon,
   CameraIcon,
+  SpinnerIcon,
 } from "@/presentation/components/common/icons";
-import { DashboardCamera } from "@/presentation/hooks/useDashboard";
-import { Attendance } from "@/domain/entities/attendance.entity";
+import { DashboardCamera } from "@/presentation/hooks/useDashboardCamera";
+import { AttendanceEntity } from "@/domain/entities/attendance.entity";
 import { CameraViewfinder } from "./CameraViewfinder";
 import { CameraPermissionModal } from "./CameraPermissionModal";
+import { ActiveShiftCard } from "./ActiveShiftCard";
+import { TodayCompletedCard } from "./TodayCompletedCard";
 
 interface ClockInCardProps {
   isSubmitting: boolean;
   clockInSuccess: boolean;
-  attendanceRecord?: Attendance | null;
+  clockInError: string | null;
+  attendanceRecord?: AttendanceEntity | null;
   camera: DashboardCamera;
   onClockIn: () => void;
   onRetake: () => void;
+  onClockOut?: (photo: string) => Promise<void> | void;
+  isClockOutSubmitting?: boolean;
+  clockOutError?: string | null;
 }
 
 export const ClockInCard: React.FC<ClockInCardProps> = ({
   isSubmitting,
-  clockInSuccess,
+  clockInError,
   attendanceRecord,
   camera,
   onClockIn,
   onRetake,
+  onClockOut,
+  isClockOutSubmitting = false,
+  clockOutError = null,
 }) => {
   const {
     videoRef,
@@ -42,6 +51,34 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
     closeGuideModal,
     copySettingsUrl,
   } = camera;
+
+  const isRecordToday = Boolean(
+    attendanceRecord?.timestamp &&
+    (() => {
+      const recordDate = new Date(attendanceRecord.timestamp);
+      const now = new Date();
+      return (
+        recordDate.getDate() === now.getDate() &&
+        recordDate.getMonth() === now.getMonth() &&
+        recordDate.getFullYear() === now.getFullYear()
+      );
+    })(),
+  );
+
+  if (isRecordToday && attendanceRecord?.clockOutAt) {
+    return <TodayCompletedCard attendanceRecord={attendanceRecord} />;
+  }
+
+  if (isRecordToday && attendanceRecord) {
+    return (
+      <ActiveShiftCard
+        attendanceRecord={attendanceRecord}
+        onClockOut={onClockOut}
+        isSubmitting={isClockOutSubmitting}
+        error={clockOutError}
+      />
+    );
+  }
 
   return (
     <>
@@ -94,7 +131,7 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
                 </span>
               </div>
               <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 leading-snug">
-                Pastikan wajah terlihat jelas dan berada di area presensi
+                Pastikan wajah kelihatan jelas dan senyum terbaikmu ya!
               </p>
             </div>
           </div>
@@ -115,33 +152,12 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
           isCameraStreaming={isCameraStreaming}
           isPermissionBlocked={isPermissionBlocked}
           cameraError={cameraError}
-          clockInSuccess={clockInSuccess}
-          serverTimestamp={
-            attendanceRecord
-              ? `${attendanceRecord.date} • ${attendanceRecord.time}`
-              : null
-          }
+          clockInSuccess={false}
+          serverTimestamp={null}
           onRetake={onRetake}
         />
 
-        {clockInSuccess ? (
-          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <CheckIcon className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span className="font-semibold">
-                Presensi berhasil dicatat pada{" "}
-                {attendanceRecord?.time || "hari ini"}. Selamat bekerja!
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={onRetake}
-              className="text-emerald-700 font-bold hover:underline flex-shrink-0 cursor-pointer"
-            >
-              Tutup
-            </button>
-          </div>
-        ) : photoPreview ? (
+        {photoPreview ? (
           <button
             type="button"
             onClick={onClockIn}
@@ -150,31 +166,13 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
           >
             {isSubmitting ? (
               <>
-                <svg
-                  className="animate-spin h-4 w-4 text-white"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                <span>Memproses Verifikasi Wajah...</span>
+                <SpinnerIcon className="animate-spin h-4 w-4 text-white" />
+                <span>Memverifikasi presensimu...</span>
               </>
             ) : (
               <>
                 <CameraIcon className="w-5 h-5" />
-                <span>Absen Masuk Sekarang</span>
+                <span>Mulai Kerja Sekarang 🚀</span>
               </>
             )}
           </button>
@@ -185,7 +183,7 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
             className="w-full py-3.5 px-4 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition-all duration-150 shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 text-sm cursor-pointer"
           >
             <CameraIcon className="w-5 h-5" />
-            <span>Ambil Foto Wajah Sekarang</span>
+            <span>Ambil Selfie Masuk 📸</span>
           </button>
         ) : (
           <button
@@ -201,7 +199,7 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
             <span>
               {isPermissionBlocked
                 ? "Buka Pengaturan Izin Kamera"
-                : "Hubungkan Kamera Terlebih Dahulu"}
+                : "Nyalakan Kamera Dulu"}
             </span>
           </button>
         )}
@@ -209,9 +207,15 @@ export const ClockInCard: React.FC<ClockInCardProps> = ({
         <p className="text-center text-[10px] sm:text-[11px] text-slate-400 font-medium leading-relaxed">
           <ShieldCheckIcon className="w-3.5 h-3.5 text-slate-400 inline-block mr-1.5 align-[-2px] flex-shrink-0" />
           <span className="sm:whitespace-nowrap">
-            Data presensi diverifikasi dan dienkripsi secara aman sesuai protokol perusahaan.
+            Data presensi tersimpan rapi dan aman di server Absenku.
           </span>
         </p>
+
+        {clockInError && (
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+            <span className="font-semibold">{clockInError}</span>
+          </div>
+        )}
       </div>
 
       <CameraPermissionModal

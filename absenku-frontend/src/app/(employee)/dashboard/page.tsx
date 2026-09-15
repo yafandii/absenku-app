@@ -20,21 +20,29 @@ export default async function Page() {
 
   let user: User | null = null;
   let attendances: AttendanceEntity[] = [];
+  let todayAttendance: AttendanceEntity | null = null;
 
-  try {
-    const [fetchedUser, fetchedAttendances] = await Promise.all([
+  const [fetchedUser, fetchedAttendances, fetchedToday, summaryAttendance] =
+    await Promise.all([
       authRepository.getUser(),
       attendanceRepository.getMyHistory().catch(() => []),
+      attendanceRepository.getToday().catch(() => null),
+      attendanceRepository.getSummaryAttendance().catch(() => null),
     ]);
-    user = fetchedUser;
-    attendances = fetchedAttendances;
-  } catch (error) {
-    user = null;
-  }
+  user = fetchedUser;
+  attendances = fetchedAttendances;
+  todayAttendance = fetchedToday;
 
   if (!user) {
     redirect("/login");
   }
 
-  return <DashboardPage initialUser={user} myHistoryAttendance={attendances} />;
+  return (
+    <DashboardPage
+      initialUser={user}
+      myHistoryAttendance={attendances}
+      initialTodayAttendance={todayAttendance}
+      monthlyResumeAttendance={summaryAttendance ?? null}
+    />
+  );
 }

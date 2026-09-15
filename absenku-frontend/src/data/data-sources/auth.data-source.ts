@@ -31,7 +31,9 @@ export class AuthRemoteDataSource implements AuthDataSource {
 
   async getUser(): Promise<User> {
     try {
-      const response = await this.serverApi.get<User>(API_ENDPOINTS.AUTH.USER_ME);
+      const response = await this.serverApi.get<User>(
+        API_ENDPOINTS.AUTH.USER_ME,
+      );
       return response.data;
     } catch (error) {
       console.error(

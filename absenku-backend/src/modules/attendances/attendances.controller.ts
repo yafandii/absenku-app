@@ -20,6 +20,8 @@ import { MyHistoryQueryDto } from './dto/my-history-query.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { FilterAttendanceDto } from './dto/filter-attendance.dto';
 import { Role } from '@prisma/client';
+import { get } from 'http';
+import { ClockOutDto } from './dto/clock-out.dto';
 
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller('attendances')
@@ -58,10 +60,42 @@ export class AttendancesController {
     }
 
     const data = await this.attendancesService.clockIn(userId, file, dto);
-    return {
-      message: 'Absensi berhasil tercatat!',
-      data,
-    };
+    return data;
+  }
+
+  @Post('clock-out')
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: memoryStorage(),
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          return cb(
+            new BadRequestException(
+              'Format file tidak didukung! Hanya diperbolehkan JPG, JPEG, PNG, atau WEBP.',
+            ),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+    }),
+  )
+  async clockOut(
+    @GetUser('id') userId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: ClockOutDto,
+  ) {
+    if (!file) {
+      throw new BadRequestException(
+        'Foto bukti selesai kerja (field multipart: photo) wajib diunggah!',
+      );
+    }
+
+    const data = await this.attendancesService.clockOut(userId, file, dto);
+    return data;
   }
 
   @Get('attendence-today')
@@ -85,5 +119,10 @@ export class AttendancesController {
       message: 'Data absensi berhasil diambil',
       data,
     };
+  }
+
+  @Get('monthly-summary')
+  async getMonthlySummary(@GetUser('id') userId: string) {
+    return this.attendancesService.getMonthlySummary(userId);
   }
 }

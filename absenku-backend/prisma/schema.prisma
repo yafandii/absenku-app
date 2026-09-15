@@ -43,13 +43,21 @@ model Division {
 }
 
 model Attendance {
-  id        Int      @id @default(autoincrement())
-  userId    String
-  photoUrl  String
-  latitude  Float?
-  longitude Float?
-  timestamp DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id               String    @id
+  userId           String
+  
+  // Data Clock In
+  photoUrl         String    // atau clockInPhotoUrl
+  latitude         Float?
+  longitude        Float?
+  timestamp        DateTime  @default(now()) // atau clockInAt
+  
+  // Data Clock Out (Baru)
+  clockOutAt       DateTime?
+  clockOutPhotoUrl String?
+  clockOutLatitude Float?
+  clockOutLongitude Float?
+  
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@map("attendances")
 }
