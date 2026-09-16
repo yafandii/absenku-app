@@ -1,12 +1,12 @@
 <div align="center">
 
-  <img src="public/logo.svg" alt="Absenku Logo" width="84" height="84" />
+  <img src="public/logo.svg" alt="Absenku Logo" width="96" height="96" />
 
-  # ABSENKU
-  ### Modern Smart Attendance Web System for Remote & WFH Workforce
+  # ABSENKU FRONTEND
+  ### Modern Smart Attendance Web System for Remote & Hybrid Workforce
 
   <p align="center">
-    Sistem presensi kehadiran cerdas berbasis <b>Face Recognition & Geolocation</b> yang dirancang untuk efisiensi, akurasi, dan integritas data kerja presisi tinggi.
+    Sistem presensi kehadiran cerdas berbasis <b>Face Capture & Geolocation Geofencing</b> yang dirancang dengan standar enterprise untuk akurasi data, keamanan, dan efisiensi manajemen operasional SDM.
   </p>
 
   <p align="center">
@@ -21,70 +21,115 @@
 
 ---
 
-## 🌟 Key Highlights & Features
+## 🌟 Fitur Utama (Key Features)
 
-| Fitur | Deskripsi |
-| :--- | :--- |
-| 🛡️ **Clean Architecture** | Pemisahan ketat 4-layer (*Domain*, *Data*, *Infrastructure*, *Presentation*) yang modular dan mudah diuji. |
-| 🔒 **Enterprise Cookie Auth** | Autentikasi aman berbasis *HttpOnly Cookie* (`withCredentials: true`), terlindung dari eksploitasi XSS. |
-| ⚡ **Centralized Error Handling** | Standardisasi penanganan error NestJS DTO validation, HTTP status codes, network timeouts, dan sesi kadaluarsa. |
-| 🎨 **Identic-Inspired Design** | Palet warna *Deep Indigo* & *Electric Violet* dengan komponen atomik reusable dan visual feedback responsif. |
-| 📱 **Mobile-First Responsive** | Tampilan presisi tinggi yang adaptif di layar smartphone compact hingga monitor desktop resolusi 4K. |
+### 1. 🕒 Smart Attendance & Employee Dashboard
+- **Clock-In & Clock-Out Real-Time**: Pencatatan waktu masuk dan pulang presisi dengan validasi status kehadiran (*On Time*, *Late*).
+- **Face Capture & Geolocation Geofencing**: Verifikasi visual kamera langsung serta pengecekan koordinat GPS karyawan terhadap radius kantor/zona kerja yang ditentukan.
+- **Monthly Summary Cards**: Ringkasan performa kehadiran bulanan (Total Kehadiran, Keterlambatan, Absen, serta status kepatuhan *Safe / Danger* dan skor *Good / Needs Improvement*).
+- **Riwayat Presensi (Attendance History)**: Filter riwayat berdasarkan tanggal dan bulan dengan rincian durasi kerja harian.
+
+### 2. 📊 Live Monitoring Presensi (HRD & Manajemen)
+- **Real-Time Presence Tracking**: Pantau status kehadiran seluruh karyawan hari ini secara langsung.
+- **Multi-Level Filtering & Quick Search**: Filter berdasarkan tanggal, divisi, status kehadiran (*Tepat Waktu*, *Terlambat*, *Belum Checkout*), serta pencarian instan (Nama, NIK, Email, Divisi).
+- **Detail Presensi & Modal Interaktif**: Tinjau foto absensi, catatan, koordinat lokasi, dan jam absensi detail.
+- **Export Multi-Format**: Ekspor data laporan presensi ke dalam format **Excel (.xlsx)**, **CSV**, dan cetak/unduh langsung sebagai dokumen **PDF**.
+- **Pagination Interaktif**: Navigasi data terstruktur dengan pemilih jumlah baris (10, 25, 50 data per halaman) tanpa lag.
+
+### 3. 👥 Manajemen Karyawan (User Management)
+- **Full CRUD Karyawan**: Tambah karyawan baru, edit biodata/divisi/role/status aktif, dan hapus karyawan dengan modal konfirmasi aman.
+- **Reset Password (Admin/HRD)**: Fasilitas bagi HRD/Admin untuk me-reset password akun karyawan yang terkendala login.
+- **Ganti Password Mandiri**: Pengguna dapat memperbarui kata sandi akun secara mandiri melalui modal profil terproteksi.
+- **Filter Role & Search**: Penyaringan cepat berdasarkan peran (*ALL*, *HRD*, *EMPLOYEE*) dan pencarian data karyawan.
+
+### 4. 🔒 Enterprise Security & Architecture
+- **HttpOnly Cookie Authentication**: Penyimpanan token terisolasi dari akses JavaScript sisi browser (`withCredentials: true`), melindungi aplikasi dari kerentanan serangan XSS (*Cross-Site Scripting*).
+- **Strict Clean Architecture**: Pemisahan tegas antara logika bisnis (*Domain*), akses API (*Data*), konfigurasi eksternal (*Infrastructure*), dan tampilan antarmuka (*Presentation*).
+- **Centralized Error Handling**: Pemetaan otomatis error validasi NestJS DTO, status kode HTTP, koneksi terputus, dan penanganan sesi kedaluwarsa secara konsisten.
+- **No Cascading Re-renders**: Optimasi React 19 tanpa efek samping re-render beruntun pada filter dan paginasi tabel.
 
 ---
 
 ## 🏛️ Arsitektur Proyek (Clean Architecture)
 
-Mengadopsi pola arsitektur **Clean Architecture (Onion Pattern)** untuk memastikan independensi logika bisnis terhadap framework UI dan library pihak ketiga:
+Aplikasi ini menerapkan prinsip **Clean Architecture (Onion Pattern)** guna menjamin kode yang *loosely coupled*, *maintainable*, serta mudah diuji secara independen dari framework UI:
 
 ```
 src/
 ├── app/                           # Thin Route Adapters (Next.js App Router)
-│   ├── (auth)/login/              # Route /login (delegasi langsung ke Presentation View)
-│   ├── (employee)/                # Employee Routes (dashboard, clock-in, clock-out, history)
-│   └── (admin)/                   # Admin Routes (live-monitor, reports, settings)
+│   ├── (auth)/                    # Public Authentication Routes (/login)
+│   ├── (employee)/                # Employee Workspace (/dashboard)
+│   ├── (admin)/                   # HRD/Admin Workspace
+│   │   ├── employees/             # Kelola Karyawan (User Management)
+│   │   ├── monitoring-presensi/   # Live Monitoring Presensi Karyawan
+│   │   ├── reports/               # Laporan Rekapitulasi Presensi
+│   │   └── settings/              # Konfigurasi Sistem
+│   ├── layout.tsx                 # Root Layout & Font Providers
+│   └── globals.css                # Tailwind CSS v4 Core Tokens & Reset
 │
-├── domain/                        # Core Business Logic (Layer Terbersih / Framework-Agnostic)
-│   ├── entities/                  # Model data bisnis murni
-│   ├── repositories/              # Interface / Contract repository
-│   └── use-cases/                 # Aturan bisnis aplikasi
+├── domain/                        # Pure Business Logic (Framework Agnostic)
+│   ├── entities/                  # Model entitas bisnis murni (User, Attendance, Master)
+│   ├── repositories/              # Interface / Kontrak repository
+│   └── use-cases/                 # Single-responsibility use cases (CreateUser, ClockIn, Login, dll)
 │
 ├── data/                          # Data Access Layer
-│   ├── dto/                       # Data Transfer Objects (Request/Response API)
-│   ├── data-sources/              # Panggilan remote API / local persistence
-│   └── repositories/              # Implementasi konkret dari domain repository
+│   ├── dto/                       # Data Transfer Objects (Request & Response API payload)
+│   ├── data-sources/              # Pemanggilan HTTP API (Axios Remote Data Source)
+│   └── repositories/              # Implementasi konkret dari kontrak Domain Repository
 │
-├── infrastructure/                # Eksternal Adapter & Utilities
-│   └── http/                      # Axios client instance, endpoints, token storage, & error mapping
+├── infrastructure/                # External Services & Drivers
+│   └── http/                      # Axios client instance, cookies adapter, & central error handler
 │
-└── presentation/                  # UI Components & State Management
-    ├── components/common/         # Atomic Reusable Components (Card, Button, Input, Alert)
-    ├── views/                     # Screen / Page Orchestrators
-    └── hooks/                     # Controller Custom Hooks ("Dapur Kotor" State & Event Handlers)
+├── presentation/                  # UI Components, Layouts, & Presentation State
+│   ├── components/common/         # Komponen atomik reusable (Button, Input, Card, Modal, Icons)
+│   ├── views/                     # Screen / View Orchestrator per modul
+│   └── hooks/                     # Custom Hook Controller (State management, filter, & paginasi)
+│
+└── utils/                         # Helper Murni (Export Excel, CSV, PDF, Format Tanggal)
+```
+
+### 🔄 Alur Aliran Data (Data Flow)
+```
+[User Action / View]
+        ↓
+[Presentation Hook (Controller)]
+        ↓
+[Domain Use Case (Business Rules)]
+        ↓
+[Domain Repository Interface]
+        ↓
+[Data Repository Implementation]
+        ↓
+[Remote Data Source (Axios Client)]
+        ↓
+[Backend API (NestJS REST Endpoints)]
 ```
 
 ---
 
-## 🎨 Design System & Palette
+## 🎨 Design System & Visual Palette
 
-Antarmuka dibangun dengan palet warna enterprise modern yang segar dan profesional:
+Dibangun dengan pendekatan desain modern, kontras tinggi, dan tata letak responsif:
 
-| Token | Warna | Hex | Kegunaan |
-| :--- | :---: | :---: | :--- |
-| **Primary Accent** | Deep Indigo | `#4F46E5` | Tombol CTA utama, badge header, active focus states |
-| **Secondary Accent** | Electric Violet | `#7C3AED` | Gradient glow ambient, hover visual highlights |
-| **Canvas Background** | Slate Gradient | `#F8FAFC` → `#F1F5F9` | Latar belakang bersih dengan soft lighting blur |
-| **Error Feedback** | Rose Crimson | `#E11D48` | Alert validasi formulir dan kegagalan API |
+| Token | Deskripsi | Nilai Hex | Visual |
+| :--- | :--- | :---: | :---: |
+| **Brand Primary** | Deep Indigo | `#4F46E5` | ![#4F46E5](https://via.placeholder.com/15/4F46E5/000000?text=+) |
+| **Brand Secondary** | Electric Violet | `#7C3AED` | ![#7C3AED](https://via.placeholder.com/15/7C3AED/000000?text=+) |
+| **Success / On-Time** | Emerald Green | `#10B981` | ![#10B981](https://via.placeholder.com/15/10B981/000000?text=+) |
+| **Warning / Late** | Amber Orange | `#F59E0B` | ![#F59E0B](https://via.placeholder.com/15/F59E0B/000000?text=+) |
+| **Danger / Absent** | Rose Red | `#EF4444` | ![#EF4444](https://via.placeholder.com/15/EF4444/000000?text=+) |
+| **Canvas Background** | Slate Clean Tint | `#F8FAFC` → `#F1F5F9` | ![#F8FAFC](https://via.placeholder.com/15/F8FAFC/000000?text=+) |
 
 ---
 
 ## 🚀 Memulai (Getting Started)
 
 ### 1. Prasyarat Sistem
-- **Node.js**: `v20.x` atau `v22.x` (Disarankan LTS terbaru)
-- **Package Manager**: `npm`
+- **Node.js**: Versi `v20.x` atau `v22.x` (Disarankan versi LTS)
+- **Package Manager**: `npm` versi 9 atau lebih baru
+- **Backend Absenku**: Pastikan service `absenku-backend` (NestJS) telah aktif
 
-### 2. Kloning & Instalasi Dependensi
+### 2. Kloning & Instalasi
 ```bash
 git clone <repository-url>
 cd absenku-frontend
@@ -92,42 +137,56 @@ npm install
 ```
 
 ### 3. Konfigurasi Environment Variable
-Salin template konfigurasi `.env.example` ke `.env`:
-
+Salin berkas template `.env.example` menjadi `.env`:
 ```bash
 cp .env.example .env
 ```
 
-Pastikan variabel environment telah sesuai dengan endpoint backend Anda:
+Sesuaikan nilai variabel lingkungan pada `.env`:
 ```env
+# URL Basis API NestJS Backend
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+
+# Nama Key Cookie Token Sesi
 NEXT_PUBLIC_ID_COOKIE_TOKEN=_AT_
 ```
 
-### 4. Menjalankan Development Server
+### 4. Menjalankan Server Pengembangan
+
+#### Menjalankan secara Lokal Standard:
 ```bash
 npm run dev
 ```
+Buka peramban di [http://localhost:3000](http://localhost:3000).
 
-Buka browser dan akses aplikasi di:
+#### Menjalankan dengan HTTPS (Untuk Uji Kamera & Geolocation di Perangkat Mobile LAN):
+```bash
+npm run dev:https
 ```
-http://localhost:3000
-```
+> *Catatan: Fitur browser seperti `navigator.mediaDevices.getUserMedia` (kamera) dan `navigator.geolocation` memerlukan konteks aman (HTTPS) ketika diakses dari perangkat selain `localhost`.*
 
 ---
 
-## 📦 Scripts yang Tersedia
+## 📦 Skrip NPM yang Tersedia
 
-| Command | Kegunaan |
+| Perintah | Deskripsi |
 | :--- | :--- |
-| `npm run dev` | Menjalankan local dev server dengan Turbopack |
-| `npm run build` | Menjalankan build bundle production |
-| `npm run start` | Menjalankan production server setelah build |
-| `npm run lint` | Menjalankan pemeriksaan ESLint |
-| `npx tsc --noEmit` | Memvalidasi integritas static type checking TypeScript |
+| `npm run dev` | Menjalankan Next.js development server pada port default `3000` |
+| `npm run dev:https` | Menjalankan server dev dengan sertifikat SSL/HTTPS eksperimental |
+| `npm run build` | Melakukan kompilasi dan optimasi bundle production |
+| `npm run start` | Menjalankan production server hasil build |
+| `npm run lint` | Menjalankan linter ESLint untuk menjamin kualitas kode |
+| `npx tsc --noEmit` | Memverifikasi konsistensi static typing TypeScript |
+
+---
+
+## 🛠️ Standar Kode & Kualitas (Code Quality)
+- **Clean Hooks**: Menghindari *cascading re-render* dengan pola event-driven state updates (*"You Might Not Need an Effect"*).
+- **TypeScript Strict Mode**: Seluruh entitas, payload DTO, dan properti komponen divalidasi dengan tipe data eksplisit tanpa `any` liar.
+- **Atomic Components**: Komponen tombol, modal, input, dan tabel dibuat modular dan dapat dipakai ulang (*reusable*).
 
 ---
 
 <div align="center">
-  <sub>Dibangun dengan dedikasi untuk performa dan arsitektur web modern &bull; <b>Absenku Tech Team</b></sub>
+  <sub>Dikembangkan dengan ❤️ untuk efisiensi operasional presensi modern &bull; <b>Absenku Engineering Team</b></sub>
 </div>

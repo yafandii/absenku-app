@@ -4,16 +4,47 @@ import {
   CheckIcon,
   EyeIcon,
   SearchIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@/presentation/components/common/icons";
 import { MonitorAttendanceItem } from "../types";
 
 interface MonitorTableProps {
   items: MonitorAttendanceItem[];
+  currentPage?: number;
+  totalPages?: number;
+  totalItems?: number;
+  itemsPerPage?: number;
+  onPageChange?: (page: number) => void;
+  onNextPage?: () => void;
+  onPrevPage?: () => void;
+  onItemsPerPageChange?: (perPage: number) => void;
   onOpenDetail: (item: MonitorAttendanceItem) => void;
+}
+
+function getPageNumbers(current: number, total: number): (number | string)[] {
+  if (total <= 5) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 3) {
+    return [1, 2, 3, 4, "...", total];
+  }
+  if (current >= total - 2) {
+    return [1, "...", total - 3, total - 2, total - 1, total];
+  }
+  return [1, "...", current - 1, current, current + 1, "...", total];
 }
 
 export const MonitorTable: React.FC<MonitorTableProps> = ({
   items,
+  currentPage = 1,
+  totalPages = 1,
+  totalItems,
+  itemsPerPage = 10,
+  onPageChange,
+  onNextPage,
+  onPrevPage,
+  onItemsPerPageChange,
   onOpenDetail,
 }) => {
   const getFullPhotoUrl = (url?: string | null) => {
@@ -275,6 +306,94 @@ export const MonitorTable: React.FC<MonitorTableProps> = ({
           </table>
         </div>
       </div>
+
+      {totalItems !== undefined && totalItems > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3 text-slate-500 font-medium">
+            <span>
+              Menampilkan{" "}
+              <strong className="text-slate-900 font-bold">
+                {(currentPage - 1) * itemsPerPage + 1}
+              </strong>{" "}
+              -{" "}
+              <strong className="text-slate-900 font-bold">
+                {Math.min(currentPage * itemsPerPage, totalItems)}
+              </strong>{" "}
+              dari{" "}
+              <strong className="text-slate-900 font-bold">{totalItems}</strong>{" "}
+              data
+            </span>
+
+            {onItemsPerPageChange && (
+              <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200">
+                <span className="text-slate-400 text-[11px]">Tampilkan:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+                  className="px-2 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={onPrevPage}
+              disabled={currentPage <= 1}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+            >
+              <ChevronLeftIcon className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Sebelumnya</span>
+            </button>
+
+            <div className="flex items-center gap-1">
+              {getPageNumbers(currentPage, totalPages).map((p, idx) => {
+                if (p === "...") {
+                  return (
+                    <span
+                      key={`dots-${idx}`}
+                      className="px-2 text-slate-400 font-mono text-xs"
+                    >
+                      ...
+                    </span>
+                  );
+                }
+                const isCurrent = p === currentPage;
+                return (
+                  <button
+                    key={`page-${p}`}
+                    type="button"
+                    onClick={() => onPageChange?.(Number(p))}
+                    className={`w-8 h-8 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center ${
+                      isCurrent
+                        ? "bg-indigo-600 text-white shadow-xs shadow-indigo-600/30"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={onNextPage}
+              disabled={currentPage >= totalPages}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+            >
+              <span className="hidden sm:inline">Selanjutnya</span>
+              <ChevronRightIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

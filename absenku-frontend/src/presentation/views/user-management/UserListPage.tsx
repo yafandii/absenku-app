@@ -31,7 +31,15 @@ export const UserListPage: React.FC<UserListPageProps> = ({
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const {
-    filteredUsers,
+    paginatedUsers,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    setItemsPerPage,
+    goToPage,
+    nextPage,
+    prevPage,
     stats,
     searchQuery,
     setSearchQuery,
@@ -116,7 +124,15 @@ export const UserListPage: React.FC<UserListPageProps> = ({
           />
 
           <UserTable
-            users={filteredUsers}
+            users={paginatedUsers}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={goToPage}
+            onNextPage={nextPage}
+            onPrevPage={prevPage}
+            onItemsPerPageChange={setItemsPerPage}
             onEdit={openEditModal}
             onDelete={openDeleteConfirm}
             onResetPassword={openResetPasswordModal}

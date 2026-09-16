@@ -492,30 +492,39 @@ export class AttendancesService {
     const dailyWorkHours =
       ATTENDANCE_CONFIG.WORK_END_HOUR - ATTENDANCE_CONFIG.WORK_START_HOUR - 1;
 
-    const isPastWorkEndHour = now.getHours() >= ATTENDANCE_CONFIG.WORK_END_HOUR;
     const isCurrentMonth =
       monthIndex === now.getMonth() && year === now.getFullYear();
 
-    const completedDays = attendances.filter((att) => {
-      const attDate = new Date(att.timestamp);
+    let totalWorkHours = 0;
 
+    for (const att of attendances) {
+      const attDate = new Date(att.timestamp);
       const isToday =
         isCurrentMonth &&
         attDate.getDate() === now.getDate() &&
         attDate.getMonth() === now.getMonth() &&
         attDate.getFullYear() === now.getFullYear();
 
-      if (isToday) {
-        return isPastWorkEndHour;
+      if (att.clockOutAt) {
+        // Sudah clock out: hitung durasi riil
+        const inTime = new Date(att.timestamp).getTime();
+        const outTime = new Date(att.clockOutAt).getTime();
+        const durationMinutes = Math.max(
+          0,
+          Math.floor((outTime - inTime) / (1000 * 60)),
+        );
+        totalWorkHours += durationMinutes / 60;
+      } else if (!isToday) {
+        // Hari lampau yang lupa clock out: auto-cap ke jam kerja standar
+        totalWorkHours += dailyWorkHours;
       }
+      // Jika isToday dan belum clock-out, belum masuk ke akumulasi bulanan
+    }
 
-      return true;
-    }).length;
-
-    const totalWorkHours = dailyWorkHours * completedDays;
+    const roundedWorkHours = Number(totalWorkHours.toFixed(1));
 
     const targetMonthlyHours = ATTENDANCE_CONFIG.WORK_TARGET_IN_HOURS_MONTHLY;
-    const isTargetReached = totalWorkHours >= targetMonthlyHours;
+    const isTargetReached = roundedWorkHours >= targetMonthlyHours;
     const presentDays = attendances.length;
     const disciplinePrecentage =
       presentDays === 0
@@ -548,10 +557,10 @@ export class AttendancesService {
         year: 'numeric',
       })}`,
       workHours: {
-        total: totalWorkHours,
+        total: roundedWorkHours,
         target: targetMonthlyHours,
         unit: 'jam',
-        subtext: 'Jam kerja hari ini',
+        subtext: 'Total jam kerja selesai',
         isTargetReached,
       },
       lateness: {

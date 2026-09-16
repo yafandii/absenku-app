@@ -16,17 +16,37 @@ import { getApiErrorMessage } from "@/infrastructure/http/api-error";
 interface UseUserManagementProps {
   initialUsers: User[];
   divisions: BaseMasterEntity[];
+  defaultItemsPerPage?: number;
 }
 
 export const useUserManagement = ({
   initialUsers,
   divisions,
+  defaultItemsPerPage = 10,
 }: UseUserManagementProps) => {
   const router = useRouter();
 
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
+
+  const handleSearchQueryChange = (val: string) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
+
+  const handleRoleFilterChange = (val: string) => {
+    setRoleFilter(val);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (val: number) => {
+    setItemsPerPage(val);
+    setCurrentPage(1);
+  };
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -41,7 +61,9 @@ export const useUserManagement = ({
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
   const [resettingUser, setResettingUser] = useState<User | null>(null);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
+  const [resetPasswordError, setResetPasswordError] = useState<string | null>(
+    null,
+  );
 
   const userRepository = useMemo(() => new UserRepositoryImpl(), []);
   const authRepository = useMemo(() => new AuthRepositoryImpl(), []);
@@ -87,6 +109,32 @@ export const useUserManagement = ({
       return matchesQuery && matchesRole;
     });
   }, [users, searchQuery, roleFilter]);
+
+  const totalItems = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const activePage = Math.min(currentPage, totalPages);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (activePage - 1) * itemsPerPage;
+    return filteredUsers.slice(start, start + itemsPerPage);
+  }, [filteredUsers, activePage, itemsPerPage]);
+
+  const goToPage = (page: number) => {
+    const target = Math.min(Math.max(1, page), totalPages);
+    setCurrentPage(target);
+  };
+
+  const nextPage = () => {
+    if (activePage < totalPages) {
+      goToPage(activePage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (activePage > 1) {
+      goToPage(activePage - 1);
+    }
+  };
 
   const stats = useMemo(() => {
     const totalUsers = users.length;
@@ -234,11 +282,21 @@ export const useUserManagement = ({
   return {
     users,
     filteredUsers,
+    paginatedUsers,
+    currentPage: activePage,
+    setCurrentPage: goToPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    setItemsPerPage: handleItemsPerPageChange,
+    goToPage,
+    nextPage,
+    prevPage,
     stats,
     searchQuery,
-    setSearchQuery,
+    setSearchQuery: handleSearchQueryChange,
     roleFilter,
-    setRoleFilter,
+    setRoleFilter: handleRoleFilterChange,
     isFormModalOpen,
     editingUser,
     formError,
@@ -266,4 +324,3 @@ export const useUserManagement = ({
     divisions,
   };
 };
-

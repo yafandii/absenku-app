@@ -3,7 +3,7 @@ import {
   AttendanceStatusFilter,
   MonitorAttendanceItem,
   MonitorStats,
-} from "../types";
+} from "@/presentation/views/monitoring-presensi/types";
 import {
   downloadCsv,
   downloadExcel,
@@ -15,12 +15,14 @@ interface UseLiveMonitorProps {
   initialData?: MonitorAttendanceItem[];
   initialDate?: string;
   divisions?: { id: string; name: string }[];
+  defaultItemsPerPage?: number;
 }
 
 export function useLiveMonitor({
   initialData = [],
   initialDate,
   divisions = [],
+  defaultItemsPerPage = 10,
 }: UseLiveMonitorProps = {}) {
   const getTodayString = () => {
     const today = new Date();
@@ -39,6 +41,35 @@ export function useLiveMonitor({
   const [selectedDetail, setSelectedDetail] =
     useState<MonitorAttendanceItem | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
+
+  const handleSearchQueryChange = (val: string) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
+
+  const handleDivisionFilterChange = (val: string) => {
+    setDivisionFilter(val);
+    setCurrentPage(1);
+  };
+
+  const handleDateFilterChange = (val: string) => {
+    setDateFilter(val);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (val: AttendanceStatusFilter) => {
+    setStatusFilter(val);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (val: number) => {
+    setItemsPerPage(val);
+    setCurrentPage(1);
+  };
 
   const filteredItems = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -75,6 +106,35 @@ export function useLiveMonitor({
       return true;
     });
   }, [items, searchQuery, divisionFilter, dateFilter, statusFilter]);
+
+  // Derived pagination info
+  const totalItems = filteredItems.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+
+  // Ensure current page doesn't exceed totalPages
+  const activePage = Math.min(currentPage, totalPages);
+
+  const paginatedItems = useMemo(() => {
+    const start = (activePage - 1) * itemsPerPage;
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, activePage, itemsPerPage]);
+
+  const goToPage = (page: number) => {
+    const target = Math.min(Math.max(1, page), totalPages);
+    setCurrentPage(target);
+  };
+
+  const nextPage = () => {
+    if (activePage < totalPages) {
+      goToPage(activePage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (activePage > 1) {
+      goToPage(activePage - 1);
+    }
+  };
 
   const stats: MonitorStats = useMemo(() => {
     const listForDate = dateFilter
@@ -183,7 +243,6 @@ export function useLiveMonitor({
     }
   };
 
-
   const openDetail = (item: MonitorAttendanceItem) => {
     setSelectedDetail(item);
     setIsDetailModalOpen(true);
@@ -198,15 +257,27 @@ export function useLiveMonitor({
     items,
     setItems,
     filteredItems,
+    paginatedItems,
+    // Pagination
+    currentPage: activePage,
+    setCurrentPage: goToPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    setItemsPerPage: handleItemsPerPageChange,
+    goToPage,
+    nextPage,
+    prevPage,
+    // Stats & Filters
     stats,
     searchQuery,
-    setSearchQuery,
+    setSearchQuery: handleSearchQueryChange,
     divisionFilter,
-    setDivisionFilter,
+    setDivisionFilter: handleDivisionFilterChange,
     dateFilter,
-    setDateFilter,
+    setDateFilter: handleDateFilterChange,
     statusFilter,
-    setStatusFilter,
+    setStatusFilter: handleStatusFilterChange,
     selectedDetail,
     isDetailModalOpen,
     openDetail,

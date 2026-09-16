@@ -10,7 +10,7 @@ import { MenuIcon, LogoutIcon } from "@/presentation/components/common/icons";
 import { AuthRepositoryImpl } from "@/data/repositories/auth.repository.impl";
 import { useRouter } from "next/navigation";
 import { MonitorAttendanceItem } from "./types";
-import { useLiveMonitor } from "./hooks/useLiveMonitor";
+import { useLiveMonitor } from "@/presentation/hooks/useLiveMonitor";
 import { MonitorStatsCards } from "./components/MonitorStatsCards";
 import { MonitorFilterBar } from "./components/MonitorFilterBar";
 import { MonitorTable } from "./components/MonitorTable";
@@ -34,6 +34,15 @@ export const LiveMonitorPage: React.FC<LiveMonitorPageProps> = ({
 
   const {
     filteredItems,
+    paginatedItems,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    setItemsPerPage,
+    goToPage,
+    nextPage,
+    prevPage,
     stats,
     searchQuery,
     setSearchQuery,
@@ -119,7 +128,15 @@ export const LiveMonitorPage: React.FC<LiveMonitorPageProps> = ({
           />
 
           <MonitorTable
-            items={filteredItems}
+            items={paginatedItems}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={goToPage}
+            onNextPage={nextPage}
+            onPrevPage={prevPage}
+            onItemsPerPageChange={setItemsPerPage}
             onOpenDetail={openDetail}
           />
         </main>
