@@ -16,6 +16,14 @@ import { ClockOutDto } from './dto/clock-out.dto';
 export interface FormattedAttendance {
   id: string;
   userId: string;
+  userName?: string;
+  userNik?: string;
+  userEmail?: string;
+  divisionId?: string | null;
+  divisionName?: string | null;
+  date?: string;
+  timeIn?: string;
+  timeOut?: string | null;
   photoUrl: string;
   latitude: number;
   longitude: number;
@@ -47,7 +55,7 @@ export interface MonthlySummaryResponse {
     unit: string;
     maxAllowed: number;
     subtext: string;
-    status: 'safe' | 'warning' | 'danger';
+    status: 'Safe' | 'Danger';
   };
   attendance: {
     presentDays: number;
@@ -59,7 +67,7 @@ export interface MonthlySummaryResponse {
   discipline: {
     percentage: number;
     label: string;
-    status: 'good' | 'needs_improvement';
+    status: 'good' | 'needs_improvement' | 'neutral';
   };
 }
 
@@ -92,6 +100,16 @@ export class AttendancesService {
     const status: 'on_time' | 'late' = isLate ? 'late' : 'on_time';
     const statusLabel = isLate ? 'Terlambat' : 'Tepat Waktu';
 
+    const timeIn = `${hourPart.padStart(2, '0')}:${minutePart.padStart(2, '0')}`;
+
+    const date = new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(dateObj);
+
+    let timeOut: string | null = null;
     let workDurationHours: number | null = null;
     let workDurationLabel: string | null = null;
     let isTargetMet = false;
@@ -99,8 +117,15 @@ export class AttendancesService {
       null;
 
     if (att.clockOutAt) {
+      const outDateObj = new Date(att.clockOutAt);
+      const outParts = formatter.formatToParts(outDateObj);
+      const outHourPart = outParts.find((p) => p.type === 'hour')?.value ?? '0';
+      const outMinutePart =
+        outParts.find((p) => p.type === 'minute')?.value ?? '0';
+      timeOut = `${outHourPart.padStart(2, '0')}:${outMinutePart.padStart(2, '0')}`;
+
       const inTime = new Date(att.timestamp).getTime();
-      const outTime = new Date(att.clockOutAt).getTime();
+      const outTime = outDateObj.getTime();
       const diffMs = Math.max(0, outTime - inTime);
 
       const totalMinutes = Math.floor(diffMs / (1000 * 60));
@@ -121,6 +146,9 @@ export class AttendancesService {
     return {
       id: att.id,
       userId: att.userId,
+      date,
+      timeIn,
+      timeOut,
       photoUrl: att.photoUrl,
       latitude: att.latitude ?? 0,
       longitude: att.longitude ?? 0,
@@ -128,10 +156,10 @@ export class AttendancesService {
       type: ATTENDANCE_CONFIG.DEFAULT_TYPE,
       status,
       statusLabel,
-      clockOutAt: att.clockOutAt?.toISOString(),
-      clockOutPhotoUrl: att.clockOutPhotoUrl,
-      clockOutLatitude: att.clockOutLatitude,
-      clockOutLongitude: att.clockOutLongitude,
+      clockOutAt: att.clockOutAt?.toISOString() ?? null,
+      clockOutPhotoUrl: att.clockOutPhotoUrl ?? null,
+      clockOutLatitude: att.clockOutLatitude ?? null,
+      clockOutLongitude: att.clockOutLongitude ?? null,
       workDurationHours,
       workDurationLabel,
       isTargetMet,
@@ -410,6 +438,18 @@ export class AttendancesService {
 
     const totalPages = Math.ceil(totalItems / limitNum);
 
+    const formattedData = attendances.map((att: any) => {
+      const formatted = this.formatAttendance(att);
+      return {
+        ...formatted,
+        userName: att.user?.name ?? '-',
+        userNik: att.user?.id ?? '-',
+        userEmail: att.user?.email ?? '-',
+        divisionId: att.user?.division?.id ?? null,
+        divisionName: att.user?.division?.name ?? 'Tanpa Divisi',
+      };
+    });
+
     return {
       pagination: {
         page: pageNum,
@@ -419,7 +459,7 @@ export class AttendancesService {
         hasNext: pageNum < totalPages,
         hasPrev: pageNum > 1 && totalPages > 0,
       },
-      data: attendances,
+      data: formattedData,
     };
   }
 
@@ -476,13 +516,31 @@ export class AttendancesService {
 
     const targetMonthlyHours = ATTENDANCE_CONFIG.WORK_TARGET_IN_HOURS_MONTHLY;
     const isTargetReached = totalWorkHours >= targetMonthlyHours;
+    const presentDays = attendances.length;
     const disciplinePrecentage =
-      workingDays === 0
+      presentDays === 0
         ? 0
-        : Math.max(0, ((workingDays - lateCount) / workingDays) * 100).toFixed(
+        : Math.max(0, ((presentDays - lateCount) / presentDays) * 100).toFixed(
             2,
           );
-    const isDiscipline = Number(lateCount) <= lateThreshold;
+    const isLatenessSafe = Number(lateCount) <= lateThreshold;
+
+    let disciplineLabel = 'Sangat Baik';
+    let disciplineStatus: 'good' | 'needs_improvement' | 'neutral' = 'good';
+
+    if (presentDays === 0) {
+      disciplineLabel = 'Belum Ada Data';
+      disciplineStatus = 'neutral';
+    } else if (Number(disciplinePrecentage) < 80 || !isLatenessSafe) {
+      disciplineLabel = 'Buruk';
+      disciplineStatus = 'needs_improvement';
+    } else if (Number(disciplinePrecentage) < 95) {
+      disciplineLabel = 'Cukup Baik';
+      disciplineStatus = 'good';
+    } else {
+      disciplineLabel = 'Sangat Baik';
+      disciplineStatus = 'good';
+    }
 
     const payload: MonthlySummaryResponse = {
       period: `${firstDayOfMonth.toLocaleDateString('id-ID', {
@@ -501,19 +559,19 @@ export class AttendancesService {
         unit: 'kali',
         maxAllowed: lateThreshold,
         subtext: 'Batas keterlambatan per bulan',
-        status: isDiscipline ? 'safe' : 'danger',
+        status: isLatenessSafe ? 'Safe' : 'Danger',
       },
       attendance: {
-        presentDays: attendances.length,
+        presentDays,
         totalWorkingDays: workingDays,
-        remainingDays: workingDays - attendances.length,
+        remainingDays: workingDays - presentDays,
         unit: 'hari',
         subtext: 'Total Masuk',
       },
       discipline: {
         percentage: Number(disciplinePrecentage),
-        label: isDiscipline ? 'Sangat Baik' : 'Buruk',
-        status: isDiscipline ? 'good' : 'needs_improvement',
+        label: disciplineLabel,
+        status: disciplineStatus,
       },
     };
 

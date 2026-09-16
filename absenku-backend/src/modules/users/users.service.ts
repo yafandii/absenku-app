@@ -4,6 +4,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DeleteUserDto } from './dto/delete-user.dto';
+import {
+  ChangePasswordUserDto,
+  ResetPasswordUserDto,
+} from './dto/password-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -125,6 +129,39 @@ export class UsersService {
         createdAt: true,
       },
     });
+  }
+
+  async changePassword(id: string, dto: ChangePasswordUserDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new ConflictException('User tidak ditemukan');
+    }
+    const isPasswordValid = await bcrypt.compare(
+      dto.currentPassword,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      throw new ConflictException('Password lama tidak valid');
+    }
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+    });
+    return {
+      message: 'Password berhasil diubah',
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordUserDto) {
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: dto.id },
+      data: { password: hashedPassword },
+    });
+    return {
+      message: 'Password berhasil diubah',
+    };
   }
 
   private async generateUserId(): Promise<string> {

@@ -4,18 +4,21 @@ import {
   PencilIcon,
   TrashIcon,
   UsersIcon,
+  KeyIcon,
 } from "@/presentation/components/common/icons";
 
 interface UserTableProps {
   users: User[];
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
+  onResetPassword: (user: User) => void;
 }
 
 export const UserTable: React.FC<UserTableProps> = ({
   users,
   onEdit,
   onDelete,
+  onResetPassword,
 }) => {
   if (users.length === 0) {
     return (
@@ -123,6 +126,15 @@ export const UserTable: React.FC<UserTableProps> = ({
                         className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
                       >
                         <PencilIcon className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onResetPassword(item)}
+                        title="Reset Password Karyawan"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                      >
+                        <KeyIcon className="w-4 h-4" />
                       </button>
 
                       <button

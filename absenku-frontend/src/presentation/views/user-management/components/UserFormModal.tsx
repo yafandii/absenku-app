@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { User } from "@/domain/entities/user.entity";
 import { CreateUserDto, UpdateUserDto } from "@/data/dto/user.dto";
 import { CloseIcon, SpinnerIcon } from "@/presentation/components/common/icons";
 import { SearchableSelect } from "@/presentation/components/common/SearchableSelect";
 import { BaseMasterEntity } from "@/domain/entities/masters.entity";
+import { useUserForm } from "@/presentation/hooks/useUserForm";
 
 interface UserFormModalProps {
   isOpen: boolean;
@@ -35,51 +36,28 @@ const UserFormInner: React.FC<FormInnerProps> = ({
   error,
   divisions,
 }) => {
-  const isEditing = Boolean(editingUser);
-
-  const [name, setName] = useState(editingUser?.name || "");
-  const [email, setEmail] = useState(editingUser?.email || "");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"EMPLOYEE" | "HRD">(
-    (editingUser?.role?.toUpperCase() as "EMPLOYEE" | "HRD") || "EMPLOYEE",
-  );
-  const [selectedDivision, setSelectedDivision] = useState(
-    editingUser?.division?.id || "",
-  );
-  const [isActive, setIsActive] = useState(editingUser?.isActive ?? true);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (isEditing && editingUser) {
-      const payload: UpdateUserDto = {
-        id: editingUser.id,
-        name,
-        email,
-        role,
-        divisionId: selectedDivision || undefined,
-        isActive,
-      };
-      if (password.trim()) {
-        payload.password = password;
-      }
-      await onUpdate(payload);
-    } else {
-      const payload: CreateUserDto = {
-        name,
-        email,
-        role,
-        divisionId: selectedDivision || undefined,
-        password,
-      };
-      await onCreate(payload);
-    }
-  };
-
-  const divisionOptions = divisions.map((division) => ({
-    value: division.id,
-    label: division.name,
-  }));
+  const {
+    isEditing,
+    name,
+    setName,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    role,
+    setRole,
+    selectedDivision,
+    setSelectedDivision,
+    isActive,
+    setIsActive,
+    divisionOptions,
+    handleSubmit,
+  } = useUserForm({
+    editingUser,
+    divisions,
+    onCreate,
+    onUpdate,
+  });
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-5 animate-in zoom-in-95 duration-150">
@@ -168,23 +146,21 @@ const UserFormInner: React.FC<FormInnerProps> = ({
           />
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700">
-            {isEditing ? "Password Baru (Opsional)" : "Password Awal"}
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required={!isEditing}
-            placeholder={
-              isEditing
-                ? "Kosongkan bila tidak ingin ganti"
-                : "Minimal 6 karakter"
-            }
-            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-          />
-        </div>
+        {!isEditing && (
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700">
+              Password Awal
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Minimal 6 karakter"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+            />
+          </div>
+        )}
 
         {isEditing && (
           <div className="flex items-center gap-2 pt-1">

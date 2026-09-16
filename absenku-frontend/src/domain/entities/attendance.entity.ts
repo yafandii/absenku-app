@@ -1,6 +1,11 @@
 export interface AttendanceEntity {
   id: string;
   userId: string;
+  userName?: string;
+  userNik?: string;
+  userEmail?: string;
+  divisionId?: string | null;
+  divisionName?: string | null;
   photoUrl: string;
   latitude: number;
   longitude: number;
@@ -35,7 +40,7 @@ export interface SummaryAttendanceEntity {
     unit: string;
     maxAllowed: number;
     subtext: string;
-    status: "safe" | "warning" | "danger";
+    status: "Safe" | "Danger";
   };
   attendance: {
     presentDays: number;

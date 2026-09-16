@@ -13,4 +13,9 @@ export interface AttendanceRepository {
   getMyHistory(): Promise<AttendanceEntity[]>;
   getToday(): Promise<AttendanceEntity | null>;
   getSummaryAttendance(): Promise<SummaryAttendanceEntity | null>;
+  getAllAttendances(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<AttendanceEntity[]>;
 }
+

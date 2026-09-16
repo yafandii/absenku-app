@@ -33,7 +33,7 @@ export function useClockOutCamera() {
       .getUserMedia({
         video: {
           facingMode: "user",
-          width: { ideal: 1280 },
+          width: { ideal: 720 },
           height: { ideal: 720 },
         },
         audio: false,
@@ -76,16 +76,22 @@ export function useClockOutCamera() {
   const captureSnapshot = useCallback(() => {
     if (!videoRef.current) return;
     const video = videoRef.current;
+    const vWidth = video.videoWidth || 640;
+    const vHeight = video.videoHeight || 480;
+    const size = Math.min(vWidth, vHeight);
+    const startX = (vWidth - size) / 2;
+    const startY = (vHeight - size) / 2;
+
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    canvas.width = size;
+    canvas.height = size;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, startX, startY, size, size, 0, 0, size, size);
 
     const dataUrl = canvas.toDataURL("image/png");
     setPhotoPreview(dataUrl);

@@ -15,6 +15,10 @@ export interface AttendanceDataSource {
   getMyHistory(): Promise<PaginatedAttendanceResponseDto>;
   getToday(): Promise<AttendanceResponseDto | null>;
   getgetSummaryAttendance(): Promise<MonthlySummaryResponseDto | null>;
+  getAllAttendances(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedAttendanceResponseDto>;
 }
 
 export class AttendanceRemoteDataSource implements AttendanceDataSource {
@@ -72,20 +76,23 @@ export class AttendanceRemoteDataSource implements AttendanceDataSource {
     formData.append("lat", request.lat!.toString());
     formData.append("lng", request.lng!.toString());
 
-    const response = await this.serverApi.post<{
-      data?: AttendanceResponseDto;
-    } & AttendanceResponseDto>(
-      API_ENDPOINTS.ATTENDANCE.CLOCKOUT,
-      formData,
+    const response = await this.serverApi.post<
       {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        data?: AttendanceResponseDto;
+      } & AttendanceResponseDto
+    >(API_ENDPOINTS.ATTENDANCE.CLOCKOUT, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
       },
-    );
+    });
 
     const raw = response.data;
-    if (raw.data && typeof raw.data === "object" && "id" in raw.data && raw.data.id) {
+    if (
+      raw.data &&
+      typeof raw.data === "object" &&
+      "id" in raw.data &&
+      raw.data.id
+    ) {
       return raw.data as AttendanceResponseDto;
     }
     return raw as AttendanceResponseDto;
@@ -101,22 +108,34 @@ export class AttendanceRemoteDataSource implements AttendanceDataSource {
 
   async getToday(): Promise<AttendanceResponseDto | null> {
     try {
-      const response = await this.serverApi.get<{
-        data?: {
-          alreadyAttendance?: boolean;
-          data?: AttendanceResponseDto | null;
-        } & AttendanceResponseDto;
-        id?: string;
-      } & AttendanceResponseDto>(API_ENDPOINTS.ATTENDANCE.TODAY);
+      const response = await this.serverApi.get<
+        {
+          data?: {
+            alreadyAttendance?: boolean;
+            data?: AttendanceResponseDto | null;
+          } & AttendanceResponseDto;
+          id?: string;
+        } & AttendanceResponseDto
+      >(API_ENDPOINTS.ATTENDANCE.TODAY);
 
       if (!response?.data) return null;
 
       const raw = response.data;
-      if (raw.data && typeof raw.data === "object" && "data" in raw.data && raw.data.data?.id) {
+      if (
+        raw.data &&
+        typeof raw.data === "object" &&
+        "data" in raw.data &&
+        raw.data.data?.id
+      ) {
         return raw.data.data;
       }
 
-      if (raw.data && typeof raw.data === "object" && "id" in raw.data && raw.data.id) {
+      if (
+        raw.data &&
+        typeof raw.data === "object" &&
+        "id" in raw.data &&
+        raw.data.id
+      ) {
         return raw.data as AttendanceResponseDto;
       }
 
@@ -128,5 +147,23 @@ export class AttendanceRemoteDataSource implements AttendanceDataSource {
     } catch {
       return null;
     }
+  }
+
+  async getAllAttendances(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedAttendanceResponseDto> {
+    const response = await this.serverApi.get<{
+      message?: string;
+      data?: PaginatedAttendanceResponseDto;
+    } & PaginatedAttendanceResponseDto>(API_ENDPOINTS.ATTENDANCE.HISTORY, {
+      params,
+    });
+
+    if (response.data.data && "pagination" in response.data.data) {
+      return response.data.data;
+    }
+
+    return response.data;
   }
 }

@@ -70,7 +70,7 @@ export function useDashboardCamera({
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "user",
-          width: { ideal: 1280 },
+          width: { ideal: 720 },
           height: { ideal: 720 },
         },
         audio: false,
@@ -125,14 +125,20 @@ export function useDashboardCamera({
   const captureSnapshot = useCallback(() => {
     if (videoRef.current && isCameraStreaming) {
       const video = videoRef.current;
+      const vWidth = video.videoWidth || 640;
+      const vHeight = video.videoHeight || 480;
+      const size = Math.min(vWidth, vHeight);
+      const startX = (vWidth - size) / 2;
+      const startY = (vHeight - size) / 2;
+
       const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
+      canvas.width = size;
+      canvas.height = size;
       const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, startX, startY, size, size, 0, 0, size, size);
         const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
         setPhotoPreview(dataUrl);
         stopStream();

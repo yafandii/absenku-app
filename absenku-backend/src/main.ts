@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
-import { json, urlencoded } from 'express';
 
 process.loadEnvFile();
 
@@ -12,7 +11,11 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://192.168.68.102:3000'],
+    origin: [
+      'http://localhost:3000',
+      'http://192.168.68.102:3000',
+      'http://172.20.0.228:3000',
+    ],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     exposedHeaders: ['Set-Cookie'],

@@ -17,7 +17,7 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
   summary,
 }) => {
   const hasAttendances = Array.isArray(attendances) && attendances.length > 0;
-
+  console.log(summary);
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm space-y-5">
       <div>
@@ -160,14 +160,23 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-black text-amber-600 font-mono">
-                  1
+                  {summary.lateness.count}
                 </span>
                 <span className="text-[10px] text-slate-400 font-semibold">
                   Kali
                 </span>
+                <span
+                  className={
+                    summary.lateness.status === "Danger"
+                      ? "text-red-500 font-semibold text-[9px]"
+                      : "text-emerald-500 font-semibold text-[9px]"
+                  }
+                >
+                  [{summary.lateness.status}]
+                </span>
               </div>
               <p className="text-[9px] text-emerald-600 font-medium">
-                Toleransi aman (&lt; 3x)
+                Toleransi aman (&lt; {summary.lateness.maxAllowed}x)
               </p>
             </div>
 
@@ -180,13 +189,15 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-black text-slate-900 font-mono">
-                  22
+                  {summary.attendance.presentDays}
                 </span>
                 <span className="text-[10px] text-slate-400 font-semibold">
-                  / 23 Hari
+                  / {summary.attendance.totalWorkingDays} Hari
                 </span>
               </div>
-              <p className="text-[9px] text-slate-400">1 hari tersisa</p>
+              <p className="text-[9px] text-slate-400">
+                {summary.attendance.remainingDays} hari tersisa
+              </p>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
@@ -198,11 +209,11 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-black text-emerald-600 font-mono">
-                  95.6%
+                  {summary.discipline.percentage}
                 </span>
               </div>
               <p className="text-[9px] text-emerald-600 font-medium">
-                Performa Sangat Baik
+                Performa {summary.discipline.label}
               </p>
             </div>
           </div>

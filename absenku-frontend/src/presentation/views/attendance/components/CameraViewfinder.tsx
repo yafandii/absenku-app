@@ -27,7 +27,7 @@ export const CameraViewfinder: React.FC<CameraViewfinderProps> = ({
   onRetake,
 }) => {
   return (
-    <div className="relative rounded-2xl overflow-hidden aspect-video w-full bg-slate-950 border border-slate-200/80 group select-none flex items-center justify-center isolate [transform:translateZ(0)]">
+    <div className="relative rounded-2xl overflow-hidden aspect-square w-full bg-slate-950 border border-slate-200/80 group select-none flex items-center justify-center isolate [transform:translateZ(0)]">
       {photoPreview ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}

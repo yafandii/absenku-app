@@ -17,6 +17,10 @@ import { Role } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DeleteUserDto } from './dto/delete-user.dto';
 import { GetUser } from '../../common/decorators/get-user.decorator';
+import {
+  ChangePasswordUserDto,
+  ResetPasswordUserDto,
+} from './dto/password-user.dto';
 
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller('users')
@@ -50,5 +54,19 @@ export class UsersController {
   @Get()
   findMe(@GetUser('id') userId: string) {
     return this.usersService.findMe(userId);
+  }
+
+  @Put('change-password')
+  changePassword(
+    @GetUser('id') userId: string,
+    @Body() dto: ChangePasswordUserDto,
+  ) {
+    return this.usersService.changePassword(userId, dto);
+  }
+
+  @Roles(Role.HRD)
+  @Put('reset-password')
+  resetPassword(@Body() dto: ResetPasswordUserDto) {
+    return this.usersService.resetPassword(dto);
   }
 }

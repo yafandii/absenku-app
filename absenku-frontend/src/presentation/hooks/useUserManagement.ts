@@ -1,12 +1,17 @@
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { User } from "@/domain/entities/user.entity";
 import { CreateUserDto, UpdateUserDto } from "@/data/dto/user.dto";
 import { UserRepositoryImpl } from "@/data/repositories/user.repository.impl";
+import { AuthRepositoryImpl } from "@/data/repositories/auth.repository.impl";
 import { CreateUserUseCase } from "@/domain/use-cases/user/create-user.use-case";
 import { UpdateUserUseCase } from "@/domain/use-cases/user/update-user.use-case";
 import { DeleteUserUseCase } from "@/domain/use-cases/user/delete-user.use-case";
-import { BaseMasterEntity } from "@/domain/entities/masters.entity";
 import { GetAllUsersUseCase } from "@/domain/use-cases/user/get-all-users.use-case";
+import { ResetPasswordUseCase } from "@/domain/use-cases/user/reset-password.use-case";
+import { LogoutUseCase } from "@/domain/use-cases/auth/logout.use-case";
+import { BaseMasterEntity } from "@/domain/entities/masters.entity";
+import { getApiErrorMessage } from "@/infrastructure/http/api-error";
 
 interface UseUserManagementProps {
   initialUsers: User[];
@@ -17,6 +22,8 @@ export const useUserManagement = ({
   initialUsers,
   divisions,
 }: UseUserManagementProps) => {
+  const router = useRouter();
+
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
@@ -29,8 +36,16 @@ export const useUserManagement = ({
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+  const [resettingUser, setResettingUser] = useState<User | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
 
   const userRepository = useMemo(() => new UserRepositoryImpl(), []);
+  const authRepository = useMemo(() => new AuthRepositoryImpl(), []);
+
   const createUserUseCase = useMemo(
     () => new CreateUserUseCase(userRepository),
     [userRepository],
@@ -43,10 +58,17 @@ export const useUserManagement = ({
     () => new DeleteUserUseCase(userRepository),
     [userRepository],
   );
-
   const getAllUsersUseCase = useMemo(
     () => new GetAllUsersUseCase(userRepository),
     [userRepository],
+  );
+  const resetPasswordUseCase = useMemo(
+    () => new ResetPasswordUseCase(userRepository),
+    [userRepository],
+  );
+  const logoutUseCase = useMemo(
+    () => new LogoutUseCase(authRepository),
+    [authRepository],
   );
 
   const filteredUsers = useMemo(() => {
@@ -106,12 +128,23 @@ export const useUserManagement = ({
 
   const openDeleteConfirm = (user: User) => {
     setDeletingUser(user);
+    setDeleteError(null);
     setIsDeleteConfirmOpen(true);
   };
 
   const closeDeleteConfirm = () => {
     setIsDeleteConfirmOpen(false);
     setDeletingUser(null);
+    setDeleteError(null);
+  };
+
+  const refreshUsers = async () => {
+    try {
+      const freshUsers = await getAllUsersUseCase.execute();
+      setUsers(freshUsers);
+    } catch (err) {
+      console.error("Gagal refresh data karyawan:", err);
+    }
   };
 
   const handleCreateUser = async (payload: CreateUserDto) => {
@@ -123,22 +156,9 @@ export const useUserManagement = ({
       await refreshUsers();
       closeFormModal();
     } catch (err: unknown) {
-      const errorMsg =
-        err instanceof Error
-          ? err.message
-          : "Terjadi kesalahan saat menambahkan karyawan.";
-      setFormError(errorMsg);
+      setFormError(getApiErrorMessage(err));
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const refreshUsers = async () => {
-    try {
-      const freshUsers = await getAllUsersUseCase.execute();
-      setUsers(freshUsers);
-    } catch (err) {
-      console.error("Gagal refresh data karyawan:", err);
     }
   };
 
@@ -151,11 +171,7 @@ export const useUserManagement = ({
       await refreshUsers();
       closeFormModal();
     } catch (err: unknown) {
-      const errorMsg =
-        err instanceof Error
-          ? err.message
-          : "Terjadi kesalahan saat memperbarui data karyawan.";
-      setFormError(errorMsg);
+      setFormError(getApiErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -166,13 +182,52 @@ export const useUserManagement = ({
 
     try {
       setIsDeleting(true);
+      setDeleteError(null);
       await deleteUserUseCase.execute(deletingUser.id);
       setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
       closeDeleteConfirm();
-    } catch {
-      alert("Gagal menghapus data karyawan. Silakan coba lagi.");
+    } catch (err: unknown) {
+      setDeleteError(getApiErrorMessage(err));
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUseCase.execute();
+    } catch {}
+
+    router.push("/login");
+  };
+
+  const openResetPasswordModal = (user: User) => {
+    setResettingUser(user);
+    setResetPasswordError(null);
+    setIsResetPasswordOpen(true);
+  };
+
+  const closeResetPasswordModal = () => {
+    setIsResetPasswordOpen(false);
+    setResettingUser(null);
+    setResetPasswordError(null);
+  };
+
+  const handleResetPassword = async (newPassword: string) => {
+    if (!resettingUser) return;
+    try {
+      setIsResettingPassword(true);
+      setResetPasswordError(null);
+      await resetPasswordUseCase.execute({
+        id: resettingUser.id,
+        newPassword,
+      });
+    } catch (err: unknown) {
+      const msg = getApiErrorMessage(err);
+      setResetPasswordError(msg);
+      throw err;
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -196,9 +251,19 @@ export const useUserManagement = ({
     isDeleteConfirmOpen,
     deletingUser,
     isDeleting,
+    deleteError,
     openDeleteConfirm,
     closeDeleteConfirm,
     handleConfirmDelete,
+    isResetPasswordOpen,
+    resettingUser,
+    isResettingPassword,
+    resetPasswordError,
+    openResetPasswordModal,
+    closeResetPasswordModal,
+    handleResetPassword,
+    handleLogout,
     divisions,
   };
 };
+

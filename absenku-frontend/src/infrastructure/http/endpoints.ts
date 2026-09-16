@@ -21,4 +21,8 @@ export const API_ENDPOINTS = {
   MASTER: {
     DIVISIONS: "/masters/divisions",
   },
+  USER: {
+    CHANGE_PASSWORD: "/users/change-password",
+    RESET_PASSWORD: "/users/reset-password",
+  },
 };

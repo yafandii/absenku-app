@@ -35,7 +35,8 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   const isEmployeesActive =
     pathname === "/employees" || pathname.startsWith("/employees/");
   const isMonitorActive =
-    pathname === "/live-monitor" || pathname.startsWith("/live-monitor/");
+    pathname === "/monitoring-presensi" ||
+    pathname.startsWith("/monitoring-presensi/");
 
   return (
     <>
@@ -119,7 +120,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   </Link>
 
                   <Link
-                    href="/live-monitor"
+                    href="/monitoring-presensi"
                     onClick={onClose}
                     className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                       isMonitorActive

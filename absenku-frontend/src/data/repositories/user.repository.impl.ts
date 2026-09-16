@@ -1,6 +1,11 @@
 import { UserRepository } from "@/domain/repositories/user.repository";
 import { User } from "@/domain/entities/user.entity";
-import { CreateUserDto, UpdateUserDto } from "@/data/dto/user.dto";
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  ChangePasswordDto,
+  ResetPasswordDto,
+} from "@/data/dto/user.dto";
 import {
   UserDataSource,
   UserRemoteDataSource,
@@ -26,4 +31,15 @@ export class UserRepositoryImpl implements UserRepository {
   async delete(id: string): Promise<void> {
     return this.remoteDataSource.delete(id);
   }
+
+  async changePassword(
+    payload: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    return this.remoteDataSource.changePassword(payload);
+  }
+
+  async resetPassword(payload: ResetPasswordDto): Promise<{ message: string }> {
+    return this.remoteDataSource.resetPassword(payload);
+  }
 }
+

@@ -16,29 +16,41 @@ import {
 function mapToAttendanceEntity(
   response: AttendanceResponseDto,
 ): AttendanceEntity {
+  const dateObj = new Date(response.timestamp);
+  const fallbackDate = !isNaN(dateObj.getTime())
+    ? dateObj.toISOString().split("T")[0]
+    : "";
+
   return {
     id: response.id,
     userId: response.userId,
+    userName: response.userName,
+    userNik: response.userNik,
+    userEmail: response.userEmail,
+    divisionId: response.divisionId,
+    divisionName: response.divisionName,
     photoUrl: response.photoUrl,
     latitude: response.latitude,
     longitude: response.longitude,
     timestamp: response.timestamp,
-    date: new Date(response.timestamp).toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }),
-    timeIn: new Date(response.timestamp).toLocaleTimeString("id-ID", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    timeOut: response.clockOutAt
-      ? new Date(response.clockOutAt).toLocaleTimeString("id-ID", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : null,
+    date: response.date || fallbackDate,
+    timeIn:
+      response.timeIn ||
+      (!isNaN(dateObj.getTime())
+        ? dateObj.toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "-"),
+    timeOut:
+      response.timeOut !== undefined
+        ? response.timeOut
+        : response.clockOutAt
+          ? new Date(response.clockOutAt).toLocaleTimeString("id-ID", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : null,
     type: response.type,
     status: response.status,
     statusLabel: response.statusLabel || "",
@@ -52,6 +64,7 @@ function mapToAttendanceEntity(
     workTimeStatus: response.workTimeStatus,
   };
 }
+
 
 export class AttendanceRepositoryImpl implements AttendanceRepository {
   constructor(
@@ -113,4 +126,18 @@ export class AttendanceRepositoryImpl implements AttendanceRepository {
       },
     };
   }
+
+  async getAllAttendances(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<AttendanceEntity[]> {
+    const response = await this.remoteDataSource.getAllAttendances(params);
+    const list = Array.isArray(response)
+      ? response
+      : Array.isArray(response?.data)
+        ? response.data
+        : [];
+    return list.map(mapToAttendanceEntity);
+  }
 }
+

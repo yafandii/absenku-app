@@ -14,6 +14,14 @@ export interface ClockOutRequestDto {
 export interface AttendanceResponseDto {
   id: string;
   userId: string;
+  userName?: string;
+  userNik?: string;
+  userEmail?: string;
+  divisionId?: string | null;
+  divisionName?: string | null;
+  date?: string;
+  timeIn?: string;
+  timeOut?: string | null;
   photoUrl: string;
   latitude: number;
   longitude: number;
@@ -30,6 +38,7 @@ export interface AttendanceResponseDto {
   isTargetMet?: boolean | null;
   workTimeStatus?: string | null;
 }
+
 
 export interface PaginationDto {
   page: number;
