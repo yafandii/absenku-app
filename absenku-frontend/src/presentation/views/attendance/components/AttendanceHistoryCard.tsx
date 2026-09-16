@@ -17,7 +17,7 @@ export const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = ({
   summary,
 }) => {
   const hasAttendances = Array.isArray(attendances) && attendances.length > 0;
-  console.log(summary);
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm space-y-5">
       <div>

@@ -52,6 +52,6 @@ export interface SummaryAttendanceEntity {
   discipline: {
     percentage: number;
     label: string;
-    status: "good" | "needs_improvement";
+    status: "good" | "needs_improvement" | "neutral";
   };
 }

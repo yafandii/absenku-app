@@ -68,7 +68,7 @@ export interface MonthlySummaryResponseDto {
     unit: string;
     maxAllowed: number;
     subtext: string;
-    status: "safe" | "warning" | "danger";
+    status: "Safe" | "Danger";
   };
   attendance: {
     presentDays: number;
@@ -80,6 +80,6 @@ export interface MonthlySummaryResponseDto {
   discipline: {
     percentage: number;
     label: string;
-    status: "good" | "needs_improvement";
+    status: "good" | "needs_improvement" | "neutral";
   };
 }
